@@ -219,6 +219,102 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .err-box{color:var(--coral);font-size:13px;font-weight:700;margin-top:8px;word-break:break-word}
 hr{border:0;border-top:1px solid var(--line);margin:16px 0}
 .chk{display:flex!important;gap:10px;align-items:center;font-size:14px;color:var(--txt);font-weight:600}
+/* ================= ADMIN: tema cristal ================= */
+body.adm{--bg:#0d1a4d;--bg2:rgba(255,255,255,.7);--card:rgba(255,255,255,.74);--card2:rgba(255,255,255,.62);--line:rgba(16,24,64,.08);--line2:rgba(16,24,64,.13);
+  --txt:#101a3a;--mut:#5d6684;--dim:#8d95ad;--blue:#3d5af1;--brandl:#3d5af1;--green:#059669;--amber:#b7791f;--coral:#e11d48;
+  --shadow:0 18px 40px -22px rgba(13,26,77,.55);color:var(--txt);padding-bottom:0;
+  background:radial-gradient(900px 600px at 15% 0%,#3550d8 0%,transparent 60%),radial-gradient(900px 700px at 100% 100%,#6f8cff 0%,transparent 55%),linear-gradient(135deg,#0b1745 0%,#1b2f8f 55%,#4361f0 100%) fixed}
+.adm .ash{display:grid;grid-template-columns:262px 1fr;min-height:100vh;gap:0}
+.adm .side{position:sticky;top:0;height:100vh;overflow:auto;padding:18px 14px;display:flex;flex-direction:column;gap:2px;color:#fff;
+  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.06));border-right:1px solid rgba(255,255,255,.16);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.adm .side-brand{display:flex;align-items:center;gap:10px;padding:6px 8px 18px}
+.adm .side-brand .mk{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);display:grid;place-items:center}
+.adm .side-brand .mk img{width:24px}
+.adm .side-brand .wm{height:15px;display:block}
+.adm .side-brand small{display:block;font-size:11px;opacity:.7;font-weight:700;margin-top:3px}
+.adm .side-g{font-size:10.5px;font-weight:800;letter-spacing:1.1px;opacity:.55;padding:14px 12px 6px}
+.adm .side a.si{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:12px;color:rgba(255,255,255,.82);text-decoration:none;font-weight:700;font-size:14px;transition:background .15s}
+.adm .side a.si svg{width:19px;height:19px;opacity:.9}
+.adm .side a.si:hover{background:rgba(255,255,255,.1)}
+.adm .side a.si.act{background:rgba(255,255,255,.95);color:#1b2f8f;box-shadow:0 8px 20px -10px rgba(0,0,0,.4)}
+.adm .side a.si .bdg{margin-left:auto;background:#ff6b7a;color:#fff;font-size:11px;min-width:20px;height:20px;border-radius:10px;display:grid;place-items:center;padding:0 6px}
+.adm .side-foot{margin-top:auto;padding:12px;border-radius:16px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18)}
+.adm .side-foot .me{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.adm .side-foot .me b{display:block;font-size:14px}.adm .side-foot .me small{opacity:.7;font-size:12px}
+.adm .side-foot .btn{background:rgba(255,255,255,.95);color:#1b2f8f;border:0}
+.adm .amain{min-width:0;padding:16px 22px 28px}
+.adm .atop{position:sticky;top:10px;z-index:20;display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:18px;margin-bottom:16px;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.adm .atop .mob-brand{display:none;align-items:center;gap:8px}
+.adm .atop .mob-brand .mk{width:34px;height:34px;border-radius:10px;background:#fff;display:grid;place-items:center}
+.adm .atop .mob-brand .mk img{width:22px;filter:invert(32%) sepia(87%) saturate(2700%) hue-rotate(222deg) brightness(97%)}
+.adm .atop .mob-brand .wm{height:14px}
+.adm .search{position:relative;flex:1;max-width:460px}
+.adm .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:rgba(255,255,255,.7)}
+.adm .search input{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);color:#fff;padding:10px 12px 10px 36px;border-radius:12px;font-size:14px}
+.adm .search input::placeholder{color:rgba(255,255,255,.65)}
+.adm .search input:focus{background:rgba(255,255,255,.22);box-shadow:none;border-color:rgba(255,255,255,.5)}
+.adm .sres{position:absolute;left:0;right:0;top:calc(100% + 6px);background:#fff;border-radius:14px;box-shadow:var(--shadow);overflow:hidden;z-index:40}
+.adm .sres a{display:flex;gap:10px;align-items:center;padding:10px 12px;text-decoration:none;color:var(--txt);font-weight:700;font-size:14px}
+.adm .sres a:hover,.adm .sres a.on{background:#eef1ff}
+.adm .atop .icobtn{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.22);color:#fff}
+.adm .atop .pill{background:rgba(255,255,255,.95);color:#1b2f8f;border:0;text-decoration:none}
+.adm .atop .me-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(150deg,#fff,#dfe5ff);color:#1b2f8f;display:grid;place-items:center;font-weight:800;font-size:13px}
+.adm .apanel{max-width:none;padding:22px;border-radius:26px;background:rgba(240,243,255,.82);border:1px solid rgba(255,255,255,.6);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:0 30px 60px -30px rgba(5,10,40,.6);min-height:calc(100vh - 110px)}
+.adm .card,.adm .stat{background:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.9);box-shadow:0 10px 30px -18px rgba(13,26,77,.35)}
+.adm .stat::after{background:rgba(82,113,255,.07)}
+.adm .av{background:linear-gradient(150deg,#e6eaff,#cfd8ff);border-color:#c5cffd;color:#2d43c8}
+.adm .tag{background:rgba(16,24,64,.05);border-color:rgba(16,24,64,.1)}
+.adm .tag.green{background:#e7f8f1;border-color:#b7ead3}.adm .tag.amber{background:#fdf4e2;border-color:#f3dba9}.adm .tag.coral{background:#fde8ec;border-color:#f7c0cb}.adm .tag.blue{background:#e9edff;border-color:#c5cffd}
+.adm .modal{background:rgba(250,251,255,.97);border-color:#fff}
+.adm .mbg{background:rgba(8,14,45,.45)}
+.adm #toast div{background:#fff;border-color:#e3e7f5;color:var(--txt)}
+.adm #toast div.ok{color:#047857;border-color:#b7ead3}.adm #toast div.err{color:#be123c}
+.adm .seg button.on{color:#fff}
+.adm .wk{background:rgba(255,255,255,.8)}.adm .wk .h,.adm .wk .n{background:rgba(238,241,255,.9)}.adm .wk .h.today{background:#5271ff;color:#fff}
+.adm .sh{background:rgba(82,113,255,.1)}
+.adm .skel{background:linear-gradient(90deg,rgba(255,255,255,.6) 0%,rgba(255,255,255,.95) 50%,rgba(255,255,255,.6) 100%);background-size:200% 100%}
+.adm .note{background:rgba(255,255,255,.6)}
+.adm .day .dn{background:#fff}
+.adm h1{font-size:26px}
+.adm .nav{display:none}
+@media(max-width:899px){
+  body.adm{padding-bottom:calc(84px + var(--safe-b))}
+  .adm .ash{display:block}.adm .side{display:none}
+  .adm .amain{padding:calc(8px + env(safe-area-inset-top,0px)) 10px 10px}
+  .adm .atop{top:calc(6px + env(safe-area-inset-top,0px));margin-bottom:10px}
+  .adm .atop .mob-brand{display:flex}.adm .search{display:none}.adm .atop .me-av{display:none}
+  .adm .apanel{padding:16px 14px;border-radius:22px}
+  .adm .nav{display:flex;background:rgba(255,255,255,.9);border-color:#fff}
+  .adm .nav a{color:#7a839c}
+}
+/* panel */
+.dash-hd{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.dash-hd .sub{margin-top:2px}
+.dgrid{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:14px}
+.kpi{border-radius:20px;padding:16px;cursor:pointer;text-decoration:none;color:var(--txt);transition:transform .15s,box-shadow .15s;display:block}
+.kpi:hover{transform:translateY(-2px)}
+.kpi .ki{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:#eef1ff;color:#3d5af1;margin-bottom:12px}
+.kpi .ki svg{width:18px;height:18px}
+.kpi .kv2{font-size:28px;font-weight:800;letter-spacing:-.6px;line-height:1.05;font-variant-numeric:tabular-nums}
+.kpi .kl{font-size:13px;font-weight:700;margin-top:4px}
+.kpi .ks{font-size:12px;color:var(--mut);margin-top:2px}
+.lists3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+.chart-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
+.chart-hd .seg{background:#eef1ff;border-color:#dfe4fb}
+.chart-hd .seg button{padding:6px 12px;white-space:nowrap}
+html:has(body.adm){background:#13227a}
+.bars text{font:600 11px Nunito,sans-serif;fill:#8d95ad}
+.bars .vl{fill:#101a3a;font-weight:800}
+.donut-w{display:flex;flex-direction:column;align-items:center}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;width:100%;margin-top:12px;font-size:12px}
+.legend div{display:flex;align-items:center;gap:6px;min-width:0}
+.legend span.n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mut);font-weight:700}
+.legend b{font-variant-numeric:tabular-nums}
+.live{display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.2);margin-right:6px;animation:pulse 1.6s infinite}
+@media(max-width:1180px){.kpis{grid-template-columns:repeat(2,1fr)}.lists3{grid-template-columns:1fr 1fr}}
+@media(max-width:899px){.dgrid,.lists3{grid-template-columns:1fr}.kpi .kv2{font-size:24px}.kpis{gap:10px}}
 /* impresión */
 #print-root{display:none}
 @media print{
@@ -456,8 +552,8 @@ function precargar() { // se ejecuta tras el primer pintado
   const uid = S.user.uid, hoy = diaHoy(), mes = hoy.slice(0, 7), t = [];
   t.push(q('turnos', W('uid', '==', uid), W('mes', 'in', [mes, addMonths(mes, 1)])), q('ausencias', W('uid', '==', uid)), q('correcciones', W('uid', '==', uid)), cargarMesUsuario(uid, mesSel));
   if (esAdmin()) {
-    const dias7 = Array.from({ length: 8 }, (_, i) => addDays(hoy, -i)), sem = Array.from({ length: 7 }, (_, i) => addDays(semSel, i));
-    t.push(qIn('fichajes', 'dia', dias7), qIn('correcciones', 'dia', dias7), q('turnos', W('fecha', '==', hoy)), q('ausencias', W('estado', '==', 'aprobada')), qIn('turnos', 'fecha', sem), q('correcciones', W('estado', '==', 'pendiente')), q('ausencias', W('estado', '==', 'pendiente')));
+    const meses = Array.from({ length: 6 }, (_, i) => addMonths(mes, i - 5)), sem = Array.from({ length: 7 }, (_, i) => addDays(semSel, i));
+    t.push(qIn('fichajes', 'mes', meses), qIn('correcciones', 'mes', meses), q('turnos', W('mes', '==', mes)), q('turnos', W('fecha', '==', hoy)), q('ausencias', W('estado', '==', 'aprobada')), qIn('turnos', 'fecha', sem), q('correcciones', W('estado', '==', 'pendiente')), q('ausencias', W('estado', '==', 'pendiente')));
   }
   Promise.allSettled(t);
 }
@@ -479,7 +575,7 @@ async function contarPendientes() {
   try {
     const [c, a] = await Promise.all([q('correcciones', W('estado', '==', 'pendiente')), q('ausencias', W('estado', '==', 'pendiente'))]);
     S.pendientes = new Set(c.map(x => `${x.uid}|${x.dia}|${x.motivo}|${x.autorUid}`)).size + a.length;
-    const b = $('#nav-badge'); if (b) { b.textContent = S.pendientes; b.classList.toggle('hidden', !S.pendientes); }
+    $$('.js-badge').forEach(b => { b.textContent = S.pendientes; b.classList.toggle('hidden', !S.pendientes); });
   } catch (e) { console.warn(e); }
 }
 
@@ -541,6 +637,7 @@ async function start() {
 
 /* ================= acceso / configuración inicial ================= */
 function renderLogin(aviso = S.aviso || '') {
+  document.body.classList.remove('adm');
   S.aviso = '';
   $('#app').innerHTML = `<div class="authw"><div class="auth-hero"><img src="img/logo-blanco.png" alt="controlpark"><p>${esc(S.empresa?.nombre || 'Registro horario')}</p></div><form class="auth" id="f-login"><div class="card" style="padding:20px">
   <h1 style="font-size:21px">Hola de nuevo</h1><p class="sub">Entra para fichar y ver tu horario.</p>
@@ -565,6 +662,7 @@ function renderLogin(aviso = S.aviso || '') {
 }
 
 function renderSetup() {
+  document.body.classList.remove('adm');
   $('#app').innerHTML = `<div class="authw"><div class="auth-hero"><img src="img/logo-blanco.png" alt="controlpark"><p>Registro horario</p></div><form class="auth" id="f-setup">
   <h1 style="text-align:center">Configuración inicial</h1><p class="sub" style="text-align:center">Crea la empresa y la cuenta de administrador. Solo se hace una vez.</p>
   <div class="card" style="margin-top:14px"><h3>Empresa</h3>
@@ -602,7 +700,20 @@ const IC = {
   home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
   team: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14.5c3 0 5 1.5 5 4.5"/></svg>',
   more: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>',
+  chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>',
+  pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+  gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+  alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
+  bolt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>',
 };
+const SIDE = [
+  ['GENERAL', [['admin/panel', 'Panel', IC.home], ['admin/registros', 'Registros', IC.list], ['admin/informes', 'Informes', IC.chart]]],
+  ['PERSONAS', [['admin/equipo', 'Equipo', IC.team], ['admin/turnos', 'Turnos', IC.cal], ['admin/horarios', 'Horarios', IC.clock], ['admin/solicitudes', 'Solicitudes', IC.inbox]]],
+  ['EMPRESA', [['admin/centros', 'Centros', IC.pin], ['admin/auditoria', 'Auditoría', IC.shield], ['admin/ajustes', 'Ajustes', IC.gear]]],
+];
 const NAV_EMP = [['fichar', 'Fichar', IC.clock], ['horario', 'Horario', IC.cal], ['historial', 'Historial', IC.list], ['solicitudes', 'Solicitudes', IC.inbox], ['perfil', 'Perfil', IC.user]];
 const NAV_ADM = [['admin/panel', 'Panel', IC.home], ['admin/equipo', 'Equipo', IC.team], ['admin/turnos', 'Turnos', IC.cal], ['admin/solicitudes', 'Solicitudes', IC.inbox], ['admin/mas', 'Más', IC.more]];
 const RUTAS = {};
@@ -616,6 +727,41 @@ const IC2 = {
 };
 S.routeTok = 0; S.revalidar = null;
 
+function badgeHtml(cls) { return `<span class="${cls} js-badge ${S.pendientes ? '' : 'hidden'}">${S.pendientes}</span>`; }
+function shellEmpleado(r) {
+  return `<header class="top"><div class="brand"><div class="mk"><img src="img/icono-blanco.png" alt=""></div><div><img class="wm" src="img/marca-blanco.png" alt="controlpark"><small>REGISTRO HORARIO</small></div></div><div class="sp"></div>
+    <button class="icobtn" id="b-ref" title="Actualizar">${IC2.ref}</button>
+    ${esAdmin() ? `<button class="pill" id="sw-mode">Admin</button>` : ''}</header>
+    <main id="view" class="fade"></main>
+    <nav class="nav">${NAV_EMP.map(([k, l, i]) => `<a href="#/${k}" class="${k === r ? 'act' : ''}">${i}<span>${l}</span></a>`).join('')}</nav>`;
+}
+function shellAdmin(r) {
+  const activaMovil = NAV_ADM.some(n => n[0] === r) ? r : 'admin/mas';
+  const u = S.perfil;
+  return `<div class="ash"><aside class="side">
+      <div class="side-brand"><div class="mk"><img src="img/icono-blanco.png" alt=""></div><div><img class="wm" src="img/marca-blanco.png" alt="controlpark"><small>Panel de administración</small></div></div>
+      ${SIDE.map(([g, its]) => `<div class="side-g">${g}</div>` + its.map(([k, l, i]) => `<a class="si ${k === r ? 'act' : ''}" href="#/${k}">${i}<span>${l}</span>${k === 'admin/solicitudes' ? badgeHtml('bdg') : ''}</a>`).join('')).join('')}
+      <div class="side-foot"><div class="me"><div class="av" style="background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.3);color:#fff">${esc(iniciales(u))}</div><div><b>${esc(u.nombre)}</b><small>Administrador</small></div></div>
+      <a class="btn block sm" href="#/fichar">${IC.clock.replace('<svg', '<svg width="16" height="16"')} Ir a fichar</a></div></aside>
+    <div class="amain"><header class="atop">
+      <div class="mob-brand"><img src="img/icon-192.png" alt="" style="width:34px;height:34px;border-radius:10px;box-shadow:0 0 0 1px rgba(255,255,255,.35)"><img class="wm" src="img/marca-blanco.png" alt="controlpark"></div>
+      <div class="search">${IC.search}<input id="a-q" placeholder="Buscar empleado…" autocomplete="off"><div class="sres hidden" id="a-res"></div></div>
+      <div class="sp" style="flex:1"></div>
+      <button class="icobtn" id="b-ref" title="Actualizar">${IC2.ref}</button>
+      <a class="pill" href="#/fichar">Fichar</a><div class="me-av" title="${esc(nombreDe(u))}">${esc(iniciales(u))}</div></header>
+      <main id="view" class="apanel fade"></main></div></div>
+    <nav class="nav">${NAV_ADM.map(([k, l, i]) => `<a href="#/${k}" class="${k === activaMovil ? 'act' : ''}">${i}<span>${l}</span>${k === 'admin/solicitudes' ? badgeHtml('badge') : ''}</a>`).join('')}</nav>`;
+}
+function bindBuscador() {
+  const inp = $('#a-q'), box = $('#a-res'); if (!inp) return;
+  let sel = 0, res = [];
+  const pintar = () => { box.innerHTML = res.map((u, i) => `<a href="#" data-u="${u.id}" class="${i === sel ? 'on' : ''}"><div class="av" style="width:30px;height:30px;font-size:11px">${esc(iniciales(u))}</div>${esc(nombreDe(u))}<span class="sub" style="margin-left:auto">${esc(centroById(u.centroId)?.nombre || '')}</span></a>`).join('') || '<div class="empty" style="padding:12px">Sin resultados</div>'; box.classList.remove('hidden');
+    $$('[data-u]', box).forEach(a => a.onmousedown = e => { e.preventDefault(); ir(a.dataset.u); }); };
+  const ir = uid => { regSel.uid = uid; inp.value = ''; box.classList.add('hidden'); location.hash = '#/admin/registros'; if (location.hash === '#/admin/registros') route(); };
+  inp.oninput = () => { const f = inp.value.trim().toLowerCase(); if (!f) return box.classList.add('hidden'); sel = 0; res = S.usuarios.filter(u => `${nombreDe(u)} ${u.dni} ${u.email}`.toLowerCase().includes(f)).slice(0, 7); pintar(); };
+  inp.onkeydown = e => { if (e.key === 'ArrowDown') { sel = Math.min(sel + 1, res.length - 1); pintar(); } else if (e.key === 'ArrowUp') { sel = Math.max(sel - 1, 0); pintar(); } else if (e.key === 'Enter' && res[sel]) ir(res[sel].id); else if (e.key === 'Escape') box.classList.add('hidden'); };
+  inp.onblur = () => setTimeout(() => box.classList.add('hidden'), 150);
+}
 function route() {
   if (!S.perfil) return;
   clearInterval(S.timer);
@@ -623,15 +769,12 @@ function route() {
   if (r.startsWith('admin/') && !esAdmin()) r = 'fichar';
   if (!RUTAS[r]) r = 'fichar';
   const enAdmin = r.startsWith('admin/');
-  const nav = enAdmin ? NAV_ADM : NAV_EMP;
-  const activa = enAdmin && !nav.some(n => n[0] === r) ? 'admin/mas' : r;
-  $('#app').innerHTML = `<header class="top"><div class="brand"><div class="mk"><img src="img/icono-blanco.png" alt=""></div><div><img class="wm" src="img/marca-blanco.png" alt="controlpark"><small>${enAdmin ? 'ADMINISTRACIÓN' : 'REGISTRO HORARIO'}</small></div></div><div class="sp"></div>
-    <button class="icobtn" id="b-ref" title="Actualizar">${IC2.ref}</button>
-    ${esAdmin() ? `<button class="pill ${enAdmin ? 'on' : ''}" id="sw-mode">${enAdmin ? 'Fichar' : 'Admin'}</button>` : ''}</header>
-    <main id="view" class="fade"></main>
-    <nav class="nav">${nav.map(([k, l, i]) => `<a href="#/${k}" class="${k === activa ? 'act' : ''}">${i}<span>${l}</span>${k === 'admin/solicitudes' ? `<span class="badge ${S.pendientes ? '' : 'hidden'}" id="nav-badge">${S.pendientes}</span>` : ''}</a>`).join('')}</nav>`;
-  const sw = $('#sw-mode'); if (sw) sw.onclick = () => location.hash = enAdmin ? '#/fichar' : '#/admin/panel';
+  document.body.classList.toggle('adm', enAdmin);
+  document.querySelector('meta[name=theme-color]').content = enAdmin ? '#1b2f8f' : '#0B0E17';
+  $('#app').innerHTML = enAdmin ? shellAdmin(r) : shellEmpleado(r);
+  const sw = $('#sw-mode'); if (sw) sw.onclick = () => location.hash = '#/admin/panel';
   $('#b-ref').onclick = () => { $('#b-ref').classList.add('girando'); cacheClear(); route(); contarPendientes(); };
+  if (enAdmin) bindBuscador();
   window.scrollTo(0, 0);
   const el = $('#view'); const tok = ++S.routeTok;
   const espera = setTimeout(() => { if (!el.childElementCount) loading(el); }, 120); // sin parpadeo si los datos están en caché
@@ -1030,39 +1173,91 @@ RUTAS['perfil'] = async el => {
 };
 
 /* ================= ADMIN: panel ================= */
+function saludo() { const h = +fHora.format(new Date()).slice(0, 2); return h < 6 ? 'Buenas noches' : h < 14 ? 'Buenos días' : h < 21 ? 'Buenas tardes' : 'Buenas noches'; }
+function graficoBarras(datos, { alto = 210 } = {}) {
+  const W = 640, H = alto, pl = 38, pb = 26, pt = 22, n = datos.length; const max = Math.max(1, ...datos.map(d => d.v));
+  const paso = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000].find(x => max / x <= 4) || 1000; const top = Math.ceil(max / paso) * paso;
+  const bw = Math.min(46, (W - pl) / n * 0.5), y = v => pt + (H - pt - pb) * (1 - v / top), x = i => pl + (W - pl) / n * (i + .5);
+  let g = '';
+  for (let t = 0; t <= top; t += paso) g += `<line x1="${pl}" x2="${W}" y1="${y(t)}" y2="${y(t)}" stroke="rgba(16,24,64,.07)"/><text x="${pl - 8}" y="${y(t) + 4}" text-anchor="end">${t}h</text>`;
+  const barras = datos.map((d, i) => { const h = Math.max(3, H - pb - y(d.v)), ult = i === n - 1;
+    return `<g><title>${esc(d.titulo || d.l)}: ${d.v.toFixed(1).replace('.', ',')} h</title><rect x="${x(i) - bw / 2}" y="${H - pb - h}" width="${bw}" height="${h}" rx="9" fill="url(#${ult ? 'gb2' : 'gb1'})"/>
+      ${ult || d.v === max ? `<text class="vl" x="${x(i)}" y="${H - pb - h - 7}" text-anchor="middle">${Math.round(d.v)}h</text>` : ''}<text x="${x(i)}" y="${H - 7}" text-anchor="middle">${esc(d.l)}</text></g>`; }).join('');
+  return `<svg class="bars" viewBox="0 0 ${W} ${H}" width="100%" style="display:block"><defs><linearGradient id="gb1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fb2ff"/><stop offset="1" stop-color="#c9d4ff"/></linearGradient><linearGradient id="gb2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5271ff"/><stop offset="1" stop-color="#3d5af1"/></linearGradient></defs>${g}${barras}</svg>`;
+}
+function graficoDonut(partes, centro, sub) {
+  const tot = partes.reduce((s, p) => s + p.v, 0) || 1, R = 70, C = 2 * Math.PI * R; let acc = 0;
+  const segs = partes.map(p => { const l = C * p.v / tot, gap = partes.length > 1 ? 3 : 0; const sgm = `<circle cx="90" cy="90" r="${R}" fill="none" stroke="${p.c}" stroke-width="22" stroke-dasharray="${Math.max(0, l - gap)} ${C}" stroke-dashoffset="${-acc}"><title>${esc(p.n)}: ${dur(p.v)}</title></circle>`; acc += l; return sgm; }).join('');
+  return `<svg viewBox="0 0 180 180" width="190" height="190"><g transform="rotate(-90 90 90)"><circle cx="90" cy="90" r="${R}" fill="none" stroke="#eef1ff" stroke-width="22"/>${segs}</g>
+    <text x="90" y="88" text-anchor="middle" style="font:800 22px Nunito,sans-serif;fill:#101a3a">${esc(centro)}</text><text x="90" y="108" text-anchor="middle" style="font:700 11px Nunito,sans-serif;fill:#8d95ad">${esc(sub)}</text></svg>`;
+}
+let vistaGraf = 'semanas';
 RUTAS['admin/panel'] = async el => {
   await cargarUsuarios();
-  const hoy = diaHoy(); const dias7 = Array.from({ length: 8 }, (_, i) => addDays(hoy, -i));
-  const [fs, cs, ts, aus] = await Promise.all([qIn('fichajes', 'dia', dias7), qIn('correcciones', 'dia', dias7), q('turnos', W('fecha', '==', hoy)), q('ausencias', W('estado', '==', 'aprobada'))]);
+  const hoy = diaHoy(), mesAct = hoy.slice(0, 7), meses = Array.from({ length: 6 }, (_, i) => addMonths(mesAct, i - 5));
+  const [fs, cs, tsHoy, tsMes, aus, corP, ausP] = await Promise.all([qIn('fichajes', 'mes', meses), qIn('correcciones', 'mes', meses), q('turnos', W('fecha', '==', hoy)), q('turnos', W('mes', '==', mesAct)), q('ausencias', W('estado', '==', 'aprobada')), q('correcciones', W('estado', '==', 'pendiente')), q('ausencias', W('estado', '==', 'pendiente'))]);
   const evPorU = groupBy(eventosEfectivos(fs, cs), 'uid');
-  const activos = S.usuarios.filter(u => u.activo);
-  const tpu = groupBy(ts, 'uid');
-  const grupos = { trabajando: [], pausa: [], terminado: [], sinFichar: [], ausentes: [] };
-  const incid = [];
-  for (const u of activos) {
+  const activos = S.usuarios.filter(u => u.activo), tpu = groupBy(tsHoy, 'uid');
+  const g = { trabajando: [], pausa: [], terminado: [], sinFichar: [], ausentes: [] }, incid = [];
+  const porDia = new Map(), porCentro = new Map(); let horasMes = 0, extraMes = 0, horasMesAnt = 0;
+  const hace7 = addDays(hoy, -7), mesAnt = addMonths(mesAct, -1), diaHoyN = +hoy.slice(8);
+  for (const u of S.usuarios) {
     const jor = jornadasPorDia(evPorU.get(u.id) || []);
-    const { j } = estadoActual(jor);
-    const a = ausenciaEn(aus, u.id, hoy);
-    for (const [d, jj] of jor) if (jj.incid.length && d !== hoy) incid.push({ u, d, jj });
-    const t = tpu.get(u.id);
-    if (j?.estado === 'trabajando') grupos.trabajando.push({ u, j, t });
-    else if (j?.estado === 'pausa') grupos.pausa.push({ u, j, t });
-    else if (a) grupos.ausentes.push({ u, a });
-    else if (j && j.dia === hoy && j.eventos.length) grupos.terminado.push({ u, j, t });
-    else if (t) grupos.sinFichar.push({ u, t });
+    for (const [d, j] of jor) {
+      porDia.set(d, (porDia.get(d) || 0) + j.trabajadoMs);
+      if (d.startsWith(mesAct)) { const c = j.eventos.find(e => e.centroId)?.centroId || u.centroId || ''; porCentro.set(c, (porCentro.get(c) || 0) + j.trabajadoMs); }
+      if (d.startsWith(mesAnt) && +d.slice(8) <= diaHoyN) horasMesAnt += j.trabajadoMs;
+      if (j.incid.length && d !== hoy && d >= hace7 && u.activo) incid.push({ u, d, j });
+    }
+    if (u.activo) { const rm = resumenMes(u, mesAct, jor, tsMes, aus); horasMes += rm.tot; extraMes += rm.extra; }
+    if (!u.activo) continue;
+    const { j } = estadoActual(jor), a = ausenciaEn(aus, u.id, hoy), t = tpu.get(u.id);
+    if (j?.estado === 'trabajando') g.trabajando.push({ u, j, t }); else if (j?.estado === 'pausa') g.pausa.push({ u, j, t });
+    else if (a) g.ausentes.push({ u, a }); else if (j && j.dia === hoy && j.eventos.length) g.terminado.push({ u, j, t }); else if (t) g.sinFichar.push({ u, t });
   }
-  const linea = ({ u, j, t, a }, extra = '') => `<div class="it clickable" data-u="${u.id}"><div class="av">${esc(iniciales(u))}</div><div class="grow"><div class="t1">${esc(nombreDe(u))}</div><div class="t2">${t ? t.map(x => `${x.inicio}–${x.fin} ${esc(centroById(x.centroId)?.nombre || '')}`).join(', ') : esc(centroById(u.centroId)?.nombre || '')}${a ? esc(AUSENCIAS[a.tipo]) : ''}</div></div>${extra}</div>`;
-  const tardeMin = x => { if (!x.t) return 0; const ini = madridDate(hoy, x.t.map(t => t.inicio).sort()[0]); return Math.round((Date.now() - ini) / 60000); };
-  el.innerHTML = `<h1>Ahora mismo</h1><p class="sub" style="text-transform:capitalize">${new Intl.DateTimeFormat('es-ES', { timeZone: TZ, dateStyle: 'full' }).format(new Date())}</p>
-    <div class="grid3" style="margin:14px 0"><div class="stat"><div class="v" style="color:var(--green)">${grupos.trabajando.length}</div><div class="l">Trabajando</div></div><div class="stat"><div class="v" style="color:var(--amber)">${grupos.pausa.length}</div><div class="l">En pausa</div></div><div class="stat"><div class="v" style="color:var(--coral)">${grupos.sinFichar.filter(x => tardeMin(x) > 0).length}</div><div class="l">Turno sin fichar</div></div></div>
-    ${S.pendientes ? `<a href="#/admin/solicitudes" class="card row between" style="text-decoration:none;color:inherit;border-color:rgba(75,158,255,.4)"><span>Tienes <b>${S.pendientes}</b> solicitud(es) pendiente(s)</span><span>→</span></a>` : ''}
-    ${incid.length ? `<h2>Incidencias recientes</h2><div class="card list">${incid.map(x => `<div class="it clickable" data-u="${x.u.id}" data-mes="${x.d.slice(0, 7)}"><div class="av">${esc(iniciales(x.u))}</div><div class="grow"><div class="t1">${esc(nombreDe(x.u))}</div><div class="t2">${diaCorto(x.d)} · ${x.jj.incid.map(esc).join(', ')}</div></div><span class="tag coral">revisar</span></div>`).join('')}</div>` : ''}
-    <h2>Trabajando</h2><div class="card list">${grupos.trabajando.map(x => linea(x, `<span class="tag green">desde ${hora(x.j.primeraEntrada)}</span>`)).join('') || '<div class="empty">Nadie</div>'}</div>
-    ${grupos.pausa.length ? `<h2>En pausa</h2><div class="card list">${grupos.pausa.map(x => linea(x, `<span class="tag amber">desde ${hora(x.j.pIni)}</span>`)).join('')}</div>` : ''}
-    <h2>Con turno hoy sin fichar</h2><div class="card list">${grupos.sinFichar.map(x => { const tm = tardeMin(x); return linea(x, tm > 0 ? `<span class="tag coral">${tm < 120 ? tm + ' min tarde' : 'no ha entrado'}</span>` : '<span class="tag">aún no empieza</span>'); }).join('') || '<div class="empty">Nadie</div>'}</div>
-    ${grupos.terminado.length ? `<h2>Jornada terminada</h2><div class="card list">${grupos.terminado.map(x => linea(x, `<span class="tag">${dur(x.j.trabajadoMs)}</span>`)).join('')}</div>` : ''}
-    ${grupos.ausentes.length ? `<h2>Ausentes</h2><div class="card list">${grupos.ausentes.map(x => linea(x)).join('')}</div>` : ''}`;
+  incid.sort((a, b) => b.d.localeCompare(a.d));
+  const tardeMin = x => { if (!x.t) return 0; return Math.round((Date.now() - madridDate(hoy, x.t.map(t => t.inicio).sort()[0])) / 60000); };
+  const tarde = g.sinFichar.filter(x => tardeMin(x) > 0);
+  const pend = new Set(corP.map(x => `${x.uid}|${x.dia}|${x.motivo}|${x.autorUid}`)).size + ausP.length; S.pendientes = pend;
+  const datosGraf = () => {
+    if (vistaGraf === 'meses') return meses.map(m => ({ l: MESES[+m.slice(5) - 1].slice(0, 3), titulo: mesNombre(m), v: [...porDia].filter(([d]) => d.startsWith(m)).reduce((s, [, v]) => s + v, 0) / 3600e3 }));
+    const lun = lunesDe(hoy); return Array.from({ length: 8 }, (_, i) => { const ini = addDays(lun, (i - 7) * 7), fin = addDays(ini, 6); return { l: `${+ini.slice(8)}/${+ini.slice(5, 7)}`, titulo: `Semana del ${diaFmt(ini)}`, v: [...porDia].filter(([d]) => d >= ini && d <= fin).reduce((s, [, v]) => s + v, 0) / 3600e3 }; });
+  };
+  const partes = [...porCentro].sort((a, b) => b[1] - a[1]).map(([c, v], i) => ({ n: centroById(c)?.nombre || 'Sin centro', v, c: COLORES[i % COLORES.length] }));
+  const top5 = partes.slice(0, 5); if (partes.length > 5) top5.push({ n: 'Otros', v: partes.slice(5).reduce((s, p) => s + p.v, 0), c: '#cbd2e6' });
+  const delta = horasMesAnt ? Math.round((horasMes - horasMesAnt) / horasMesAnt * 100) : null;
+  const kpi = (href, ic, v, l, sub, col = '') => `<a class="kpi card" href="${href}" style="margin:0"><div class="ki" style="${col}">${ic}</div><div class="kv2">${v}</div><div class="kl">${l}</div><div class="ks">${sub}</div></a>`;
+  const fila = (x, extra) => `<div class="it clickable" data-u="${x.u.id}"><div class="av">${esc(iniciales(x.u))}</div><div class="grow"><div class="t1">${esc(nombreDe(x.u))}</div><div class="t2">${x.t ? x.t.map(t => `${t.inicio}–${t.fin}`).join(', ') + ' · ' : ''}${esc(centroById(x.t?.[0]?.centroId || x.u.centroId)?.nombre || '')}${x.a ? esc(AUSENCIAS[x.a.tipo]) : ''}</div></div>${extra}</div>`;
+  el.innerHTML = `
+    <div class="dash-hd"><div><h1>${saludo()}, ${esc(S.perfil.nombre)}</h1><div class="sub" style="text-transform:capitalize">${new Intl.DateTimeFormat('es-ES', { timeZone: TZ, dateStyle: 'full' }).format(new Date())} · ${activos.length} empleados activos</div></div>
+      <div class="row wrap"><a class="btn sm" href="#/admin/auditoria">${IC.shield.replace('<svg', '<svg width="15" height="15"')} Auditoría</a><button class="btn sm" id="d-asig">Asignar horario</button><button class="btn pri sm" id="d-alta">+ Alta empleado</button></div></div>
+    <div class="dgrid">
+      <div class="card" style="margin:0"><div class="chart-hd"><div><h3 style="margin:0">Horas trabajadas</h3><div class="sub">${dur(horasMes)} este mes${delta != null ? ` · <b style="color:${delta >= 0 ? 'var(--green)' : 'var(--coral)'}">${delta >= 0 ? '+' : ''}${delta}%</b> vs. mismo periodo del mes anterior` : ''}</div></div>
+        <div class="seg" id="g-seg"><button data-v="semanas" class="${vistaGraf === 'semanas' ? 'on' : ''}">8 semanas</button><button data-v="meses" class="${vistaGraf === 'meses' ? 'on' : ''}">6 meses</button></div></div>
+        <div id="g-bars">${graficoBarras(datosGraf())}</div></div>
+      <div class="card" style="margin:0"><h3 style="margin:0">Horas por centro</h3><div class="sub">${mesNombre(mesAct)}</div>
+        <div class="donut-w">${partes.length ? graficoDonut(top5, Math.round(horasMes / 3600e3) + 'h', 'este mes') + `<div class="legend">${top5.map(p => `<div><span class="hz" style="background:${p.c};margin:0"></span><span class="n">${esc(p.n)}</span><b>${Math.round(p.v / 3600e3)}h</b></div>`).join('')}</div>` : '<div class="empty">Aún no hay horas este mes</div>'}</div></div>
+    </div>
+    <div class="kpis">
+      ${kpi('#/admin/panel', IC2.in.replace('stroke-width="2.2"', 'stroke-width="2"'), g.trabajando.length + g.pausa.length, 'Trabajando ahora', `${g.pausa.length} en pausa · ${g.terminado.length} han terminado`, 'background:#e7f8f1;color:#059669')}
+      ${kpi('#/admin/panel', IC.alert, tarde.length, 'Turno sin fichar', `${g.sinFichar.length} con turno hoy sin entrar`, tarde.length ? 'background:#fde8ec;color:#e11d48' : '')}
+      ${kpi('#/admin/solicitudes', IC.inbox, pend, 'Solicitudes', pend ? 'pendientes de revisar' : 'todo al día', pend ? 'background:#fdf4e2;color:#b7791f' : '')}
+      ${kpi('#/admin/registros', IC.bolt, incid.length, 'Incidencias', 'últimos 7 días', incid.length ? 'background:#fde8ec;color:#e11d48' : '')}
+      ${kpi('#/admin/informes', IC.clock, dur(horasMes).replace(/ 00m$/, ''), 'Horas del mes', mesNombre(mesAct))}
+      ${kpi('#/admin/informes', IC.chart, dur(extraMes).replace(/ 00m$/, ''), 'Horas extra', 'acumuladas este mes')}
+      ${kpi('#/admin/equipo', IC.team, activos.length, 'Empleados activos', `${S.usuarios.length - activos.length} de baja`)}
+      ${kpi('#/admin/centros', IC.pin, S.centros.filter(c => !c.eliminado && c.activo !== false).length, 'Centros activos', `${tsHoy.length} turnos hoy`)}
+    </div>
+    <div class="lists3">
+      <div class="card" style="margin:0"><h3><span class="live"></span>Ahora mismo</h3><div class="list">${[...g.trabajando.map(x => fila(x, `<span class="tag green">desde ${hora(x.j.primeraEntrada)}</span>`)), ...g.pausa.map(x => fila(x, `<span class="tag amber">pausa ${hora(x.j.pIni)}</span>`))].join('') || '<div class="empty">Nadie trabajando ahora</div>'}</div></div>
+      <div class="card" style="margin:0"><h3>Con turno hoy</h3><div class="list">${[...g.sinFichar.map(x => { const tm = tardeMin(x); return fila(x, tm > 0 ? `<span class="tag coral">${tm < 120 ? tm + ' min tarde' : 'no ha entrado'}</span>` : '<span class="tag">aún no empieza</span>'); }), ...g.terminado.map(x => fila(x, `<span class="tag">${dur(x.j.trabajadoMs)}</span>`)), ...g.ausentes.map(x => fila(x, '<span class="tag amber">ausente</span>'))].join('') || '<div class="empty">Sin turnos hoy</div>'}</div></div>
+      <div class="card" style="margin:0"><h3>Incidencias recientes</h3><div class="list">${incid.slice(0, 8).map(x => `<div class="it clickable" data-u="${x.u.id}" data-mes="${x.d.slice(0, 7)}"><div class="av">${esc(iniciales(x.u))}</div><div class="grow"><div class="t1">${esc(nombreDe(x.u))}</div><div class="t2">${diaCorto(x.d)} · ${x.j.incid.map(esc).join(', ')}</div></div><span class="tag coral">revisar</span></div>`).join('') || '<div class="empty">Sin incidencias 👌</div>'}</div></div>
+    </div>`;
+  $$('#g-seg button', el).forEach(b => b.onclick = () => { vistaGraf = b.dataset.v; $$('#g-seg button', el).forEach(x => x.classList.toggle('on', x === b)); $('#g-bars', el).innerHTML = graficoBarras(datosGraf()); });
   $$('[data-u]', el).forEach(i => i.onclick = () => { regSel.uid = i.dataset.u; if (i.dataset.mes) mesSel = i.dataset.mes; location.hash = '#/admin/registros'; });
+  $('#d-alta', el).onclick = () => modalEmpleado(null);
+  $('#d-asig', el).onclick = () => horarios().length ? modalAsignar(null) : (toast('Primero crea un horario'), location.hash = '#/admin/horarios');
+  $$('.js-badge').forEach(b => { b.textContent = pend; b.classList.toggle('hidden', !pend); });
 };
 
 /* ================= ADMIN: equipo ================= */
