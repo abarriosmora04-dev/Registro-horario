@@ -1,0 +1,139 @@
+rules_version = '2';
+
+// Reglas de seguridad — Registro Horario ControlPark
+// Pegar en Firebase Console > Firestore Database > Reglas > Publicar.
+//
+// Principios:
+//  - Los fichajes son INALTERABLES: nadie (ni el administrador) puede editarlos ni borrarlos.
+//  - La hora de cada fichaje la pone el servidor de Google (request.time), no el móvil.
+//  - Cualquier corrección es un documento nuevo con autor, fecha y motivo (trazabilidad).
+//  - El registro de auditoría solo admite altas.
+//  - Un usuario dado de baja (activo == false) no puede leer ni escribir nada.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function userPath() { return /databases/$(database)/documents/usuarios/$(request.auth.uid); }
+    function me() { return get(userPath()).data; }
+    function activo() { return signedIn() && exists(userPath()) && me().activo == true; }
+    function isAdmin() { return activo() && me().rol == 'admin'; }
+    function owns(data) { return data.uid == request.auth.uid; }
+    function onlyKeys(keys) { return request.resource.data.keys().hasOnly(keys); }
+    function changed(keys) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys); }
+
+    // ---------- Configuración de empresa ----------
+    match /config/empresa {
+      allow read: if true; // nombre y CIF; necesario para mostrar la pantalla de acceso
+      allow create: if signedIn() && request.resource.data.setupBy == request.auth.uid;
+      allow update: if isAdmin() && request.resource.data.setupBy == resource.data.setupBy;
+      allow delete: if false;
+    }
+
+    // ---------- Usuarios ----------
+    match /usuarios/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if isAdmin()
+        || (signedIn() && request.auth.uid == uid
+            && !exists(/databases/$(database)/documents/config/empresa)
+            && getAfter(/databases/$(database)/documents/config/empresa).data.setupBy == uid
+            && request.resource.data.rol == 'admin'
+            && request.resource.data.activo == true);
+      allow update: if isAdmin()
+        || (activo() && request.auth.uid == uid
+            && changed(['geoAceptadoTs', 'telefono', 'ultimoAcceso']));
+      allow delete: if false;
+    }
+
+    // ---------- Centros de trabajo ----------
+    match /centros/{id} {
+      allow read: if activo();
+      allow create, update: if isAdmin();
+      allow delete: if false; // se desactivan, no se borran
+    }
+
+    // ---------- Turnos / horario asignado ----------
+    match /turnos/{id} {
+      allow read: if activo() && (owns(resource.data) || isAdmin());
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------- Fichajes (registro de jornada) — INALTERABLES ----------
+    match /fichajes/{id} {
+      allow read: if activo() && (owns(resource.data) || isAdmin());
+      allow create: if activo()
+        && owns(request.resource.data)
+        && request.resource.data.ts == request.time
+        && request.resource.data.tipo in ['entrada', 'pausa_inicio', 'pausa_fin', 'salida']
+        && request.resource.data.tsCliente is int
+        && math.abs(request.resource.data.tsCliente - request.time.toMillis()) < 600000
+        && request.resource.data.dia is string && request.resource.data.dia.size() == 10
+        && request.resource.data.mes is string && request.resource.data.mes.size() == 7
+        && onlyKeys(['uid', 'tipo', 'ts', 'tsCliente', 'dia', 'mes', 'centroId', 'geo',
+                     'geoError', 'distanciaM', 'fueraRadio', 'dispositivo']);
+      allow update, delete: if false;
+    }
+
+    // ---------- Correcciones (trazables) ----------
+    match /correcciones/{id} {
+      allow read: if activo() && (owns(resource.data) || isAdmin());
+      allow create: if activo()
+        && request.resource.data.autorUid == request.auth.uid
+        && request.resource.data.creadoTs == request.time
+        && request.resource.data.accion in ['anadir', 'modificar', 'anular']
+        && request.resource.data.motivo is string && request.resource.data.motivo.size() >= 5
+        && onlyKeys(['uid', 'dia', 'mes', 'accion', 'tipo', 'fichajeId', 'nuevoTs', 'valorAnterior',
+                     'motivo', 'autorUid', 'creadoTs', 'estado', 'resueltoPor', 'resueltoTs', 'respuesta'])
+        && (
+          (owns(request.resource.data) && request.resource.data.estado == 'pendiente')
+          || (isAdmin() && request.resource.data.estado == 'aprobada'
+              && request.resource.data.resueltoPor == request.auth.uid
+              && request.resource.data.resueltoTs == request.time)
+        );
+      allow update: if isAdmin()
+        && resource.data.estado == 'pendiente'
+        && request.resource.data.estado in ['aprobada', 'rechazada']
+        && request.resource.data.resueltoPor == request.auth.uid
+        && request.resource.data.resueltoTs == request.time
+        && changed(['estado', 'resueltoPor', 'resueltoTs', 'respuesta']);
+      allow delete: if false;
+    }
+
+    // ---------- Ausencias (vacaciones, bajas, permisos) ----------
+    match /ausencias/{id} {
+      allow read: if activo() && (owns(resource.data) || isAdmin());
+      allow create: if activo()
+        && request.resource.data.creadoTs == request.time
+        && (
+          (owns(request.resource.data) && request.resource.data.estado == 'pendiente')
+          || isAdmin()
+        );
+      allow update: if
+        (isAdmin() && changed(['estado', 'resueltoPor', 'resueltoTs', 'respuesta'])
+          && request.resource.data.resueltoTs == request.time)
+        || (activo() && owns(resource.data) && resource.data.estado == 'pendiente'
+            && request.resource.data.estado == 'cancelada' && changed(['estado']));
+      allow delete: if false;
+    }
+
+    // ---------- Cierres mensuales y firma del trabajador ----------
+    match /cierres/{id} {
+      allow read: if activo() && (owns(resource.data) || isAdmin());
+      allow create: if isAdmin() && request.resource.data.creadoTs == request.time;
+      allow update: if activo() && owns(resource.data)
+        && !('firmadoTs' in resource.data)
+        && request.resource.data.firmadoTs == request.time
+        && changed(['firmadoTs', 'firmaConforme', 'firmaComentario']);
+      allow delete: if false;
+    }
+
+    // ---------- Auditoría (solo altas) ----------
+    match /auditoria/{id} {
+      allow read: if isAdmin();
+      allow create: if activo()
+        && request.resource.data.autorUid == request.auth.uid
+        && request.resource.data.ts == request.time;
+      allow update, delete: if false;
+    }
+  }
+}
