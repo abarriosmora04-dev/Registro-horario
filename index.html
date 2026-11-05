@@ -288,6 +288,32 @@ body.adm{--bg:#0d1a4d;--bg2:rgba(255,255,255,.7);--card:rgba(255,255,255,.74);--
   .adm .nav{display:flex;background:rgba(255,255,255,.9);border-color:#fff}
   .adm .nav a{color:#7a839c}
 }
+/* empleado con el mismo estilo */
+.adm .ash.solo{display:block;max-width:760px;margin:0 auto}
+.adm.emp{padding-bottom:calc(92px + var(--safe-b))}
+.adm.emp .nav{display:flex;background:rgba(255,255,255,.92);border-color:#fff}
+.adm.emp .nav a{color:#7a839c}.adm.emp .nav a.act{color:#fff}
+@media(min-width:900px){.adm.emp .nav{left:50%;right:auto;transform:translateX(-50%);width:600px}}
+.adm .atop .mob-brand .mbi{width:36px;height:36px;border-radius:11px;box-shadow:0 0 0 1px rgba(255,255,255,.35)}
+.adm .atop .mob-brand small{display:block;color:rgba(255,255,255,.75);font-size:11px;font-weight:700;margin-top:2px}
+.adm.emp .atop .mob-brand{display:flex}
+.adm.emp .atop .me-av{display:grid}
+.adm .hero{box-shadow:0 20px 40px -22px rgba(30,50,160,.7)}
+.adm .fbtn.pause,.adm .fbtn.resume{background:#fff;border:1px solid #e3e7f5;box-shadow:0 10px 24px -16px rgba(13,26,77,.35)}
+.adm .fbtn.pause{color:#b7791f}.adm .fbtn.resume{color:#059669}
+.adm .tl .dot{box-shadow:0 0 0 4px #fff}
+.adm .tl li:not(:last-child)::before{background:#dfe4f3}
+.adm .list .it{border-color:rgba(16,24,64,.07)}
+.adm .err-box{color:#e11d48}
+.adm a{color:#3d5af1}
+/* acceso */
+.adm .auth-hero{background:none;padding-top:calc(56px + env(safe-area-inset-top,0px));padding-bottom:26px}
+.adm .auth-hero::after{display:none}
+.adm .auth-hero img{width:min(190px,52vw)}
+.adm .auth{margin-top:0}
+.adm .auth>h1,.adm .auth>p.sub,.adm .auth>.sub{color:#fff}
+.adm .auth .card{background:rgba(255,255,255,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:24px}
+.adm .authw .err-box{color:#e11d48}
 /* panel */
 .dash-hd{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px}
 .dash-hd .sub{margin-top:2px}
@@ -339,8 +365,8 @@ html:has(body.adm){background:#13227a}
 }
 </style>
 </head>
-<body>
-<div id="app"><div class="spin"></div></div>
+<body class="adm">
+<div id="app"><div class="spin" style="border-color:rgba(255,255,255,.25);border-top-color:#fff;margin-top:45vh"></div></div>
 <div id="toast"></div>
 <div id="modal-root"></div>
 <div id="print-root"></div>
@@ -584,6 +610,7 @@ const configurado = firebaseConfig && firebaseConfig.apiKey && !firebaseConfig.a
 if (!configurado) renderSinConfig(); else start().catch(e => { $('#app').innerHTML = `<div class="authw"><div class="auth card" style="margin-top:40px"><h2>Error al iniciar</h2><div class="err-box">${esc(errMsg(e))}</div></div></div>`; });
 
 function renderSinConfig() {
+  document.body.classList.add('adm');
   $('#app').innerHTML = `<div class="authw"><div class="auth-hero"><img src="img/logo-blanco.png" alt="controlpark"><p>Registro horario</p></div><div class="auth">
   <h1 style="text-align:center">Falta conectar Firebase</h1>
   <p class="sub" style="text-align:center;margin-bottom:14px">La app necesita una base de datos en la nube para que todos los fichajes queden centralizados.</p>
@@ -637,7 +664,7 @@ async function start() {
 
 /* ================= acceso / configuración inicial ================= */
 function renderLogin(aviso = S.aviso || '') {
-  document.body.classList.remove('adm');
+  document.body.classList.add('adm'); document.body.classList.remove('emp');
   S.aviso = '';
   $('#app').innerHTML = `<div class="authw"><div class="auth-hero"><img src="img/logo-blanco.png" alt="controlpark"><p>${esc(S.empresa?.nombre || 'Registro horario')}</p></div><form class="auth" id="f-login"><div class="card" style="padding:20px">
   <h1 style="font-size:21px">Hola de nuevo</h1><p class="sub">Entra para fichar y ver tu horario.</p>
@@ -662,7 +689,7 @@ function renderLogin(aviso = S.aviso || '') {
 }
 
 function renderSetup() {
-  document.body.classList.remove('adm');
+  document.body.classList.add('adm'); document.body.classList.remove('emp');
   $('#app').innerHTML = `<div class="authw"><div class="auth-hero"><img src="img/logo-blanco.png" alt="controlpark"><p>Registro horario</p></div><form class="auth" id="f-setup">
   <h1 style="text-align:center">Configuración inicial</h1><p class="sub" style="text-align:center">Crea la empresa y la cuenta de administrador. Solo se hace una vez.</p>
   <div class="card" style="margin-top:14px"><h3>Empresa</h3>
@@ -729,10 +756,13 @@ S.routeTok = 0; S.revalidar = null;
 
 function badgeHtml(cls) { return `<span class="${cls} js-badge ${S.pendientes ? '' : 'hidden'}">${S.pendientes}</span>`; }
 function shellEmpleado(r) {
-  return `<header class="top"><div class="brand"><div class="mk"><img src="img/icono-blanco.png" alt=""></div><div><img class="wm" src="img/marca-blanco.png" alt="controlpark"><small>REGISTRO HORARIO</small></div></div><div class="sp"></div>
-    <button class="icobtn" id="b-ref" title="Actualizar">${IC2.ref}</button>
-    ${esAdmin() ? `<button class="pill" id="sw-mode">Admin</button>` : ''}</header>
-    <main id="view" class="fade"></main>
+  const u = S.perfil;
+  return `<div class="ash solo"><div class="amain"><header class="atop">
+      <div class="mob-brand"><img src="img/icon-192.png" alt="" class="mbi"><div><img class="wm" src="img/marca-blanco.png" alt="controlpark"><small>Registro horario</small></div></div>
+      <div class="sp" style="flex:1"></div>
+      <button class="icobtn" id="b-ref" title="Actualizar">${IC2.ref}</button>
+      ${esAdmin() ? `<button class="pill" id="sw-mode">Admin</button>` : ''}<a class="me-av" href="#/perfil" title="${esc(nombreDe(u))}" style="text-decoration:none">${esc(iniciales(u))}</a></header>
+      <main id="view" class="apanel fade"></main></div></div>
     <nav class="nav">${NAV_EMP.map(([k, l, i]) => `<a href="#/${k}" class="${k === r ? 'act' : ''}">${i}<span>${l}</span></a>`).join('')}</nav>`;
 }
 function shellAdmin(r) {
@@ -769,8 +799,8 @@ function route() {
   if (r.startsWith('admin/') && !esAdmin()) r = 'fichar';
   if (!RUTAS[r]) r = 'fichar';
   const enAdmin = r.startsWith('admin/');
-  document.body.classList.toggle('adm', enAdmin);
-  document.querySelector('meta[name=theme-color]').content = enAdmin ? '#1b2f8f' : '#0B0E17';
+  document.body.classList.add('adm'); document.body.classList.toggle('emp', !enAdmin);
+  document.querySelector('meta[name=theme-color]').content = '#1b2f8f';
   $('#app').innerHTML = enAdmin ? shellAdmin(r) : shellEmpleado(r);
   const sw = $('#sw-mode'); if (sw) sw.onclick = () => location.hash = '#/admin/panel';
   $('#b-ref').onclick = () => { $('#b-ref').classList.add('girando'); cacheClear(); route(); contarPendientes(); };
