@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0B0E17">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Controlpark">
@@ -28,6 +28,7 @@
   --shadow:0 10px 30px -12px rgba(0,0,0,.55);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html,body{background:var(--bg);color:var(--txt);font:15px/1.45 Nunito,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
 body{min-height:100vh;padding-bottom:calc(84px + var(--safe-b));background:radial-gradient(1200px 500px at 50% -200px,rgba(82,113,255,.16),transparent 70%) no-repeat,var(--bg)}
 a{color:var(--blue)}
@@ -73,7 +74,7 @@ h3{font-size:15px;font-weight:800;margin-bottom:8px}
 .stat::after{content:"";position:absolute;right:-18px;top:-18px;width:60px;height:60px;border-radius:50%;background:rgba(82,113,255,.08)}
 /* formularios */
 label{display:block;font-size:12px;font-weight:700;color:var(--mut);margin:12px 0 5px}
-input,select,textarea{width:100%;background:var(--bg2);border:1px solid var(--line2);border-radius:12px;padding:12px 13px;outline:none;transition:border-color .15s,box-shadow .15s}
+input,select,textarea{width:100%;font-size:16px;background:var(--bg2);border:1px solid var(--line2);border-radius:12px;padding:12px 13px;outline:none;transition:border-color .15s,box-shadow .15s}
 input:focus,select:focus,textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(82,113,255,.2)}
 input:disabled{opacity:.6}
 textarea{min-height:84px;resize:vertical}
@@ -232,6 +233,11 @@ hr{border:0;border-top:1px solid var(--line);margin:16px 0}
 import { firebaseConfig } from './firebase-config.js';
 
 const FB = 'https://www.gstatic.com/firebasejs/10.12.2/';
+// Bloquear zoom (pellizco y doble toque) también en iPhone, que ignora user-scalable=no
+['gesturestart', 'gesturechange', 'gestureend'].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), { passive: false }));
+document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+let ultimoToque = 0;
+document.addEventListener('touchend', e => { const t = Date.now(); if (t - ultimoToque < 320 && !e.target.closest('input,textarea,select')) e.preventDefault(); ultimoToque = t; }, { passive: false });
 const TZ = 'Europe/Madrid';
 const RETENCION_ANIOS = 4;
 const TIPOS = { entrada: 'Entrada', pausa_inicio: 'Inicio pausa', pausa_fin: 'Fin pausa', salida: 'Salida' };
@@ -676,19 +682,31 @@ function ayudaGeo() {
   modal(`<h2>Activar la ubicación</h2>
     <p class="sub" style="margin-bottom:10px">El navegador tiene bloqueado el permiso de ubicación para esta web.</p>
     <h3>iPhone (Safari)</h3><p class="sub">Ajustes → Privacidad y seguridad → Localización → activada, y en <b>Safari</b> (o "Sitios web de Safari") elige <b>"Al usar la app"</b>. Si usas la app desde la pantalla de inicio, en Safari pulsa "aA" → Ajustes del sitio web → Ubicación → Permitir.</p>
+    <h3 style="margin-top:12px">iPhone: ubicación precisa</h3><p class="sub">Ajustes → Privacidad y seguridad → Localización → Safari → activa <b>"Ubicación exacta"</b>.</p>
     <h3 style="margin-top:12px">Android (Chrome)</h3><p class="sub">Toca el candado junto a la dirección → Permisos → Ubicación → Permitir. Comprueba también que la ubicación del móvil esté activada.</p>
     <div class="acts"><button class="btn pri" data-close>Entendido</button></div>`);
 }
 
+// Pide la ubicación de dos formas a la vez (rápida por red y precisa por GPS) y se queda con la mejor.
+// Antes solo se pedía GPS de alta precisión con 12 s de margen: en interiores el GPS no respondía a tiempo.
 function obtenerUbicacion() {
   return new Promise(res => {
     if (!navigator.geolocation) return res({ error: 'no_soportado' });
-    navigator.geolocation.getCurrentPosition(
-      p => res({ lat: +p.coords.latitude.toFixed(6), lng: +p.coords.longitude.toFixed(6), precision: Math.round(p.coords.accuracy) }),
-      e => res({ error: e.code === 1 ? 'denegado' : 'no_disponible' }),
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 20000 });
+    let mejor = null, hecho = false, ultimoErr = null, w = null;
+    const fin = () => {
+      if (hecho) return; hecho = true; if (w != null) navigator.geolocation.clearWatch(w); clearTimeout(t1); clearTimeout(t2);
+      if (mejor) return res({ lat: +mejor.coords.latitude.toFixed(6), lng: +mejor.coords.longitude.toFixed(6), precision: Math.round(mejor.coords.accuracy) });
+      res({ error: ultimoErr === 1 ? 'denegado' : ultimoErr === 3 ? 'tiempo_agotado' : 'no_disponible' });
+    };
+    const ok = p => { if (!mejor || p.coords.accuracy < mejor.coords.accuracy) mejor = p; if (p.coords.accuracy <= 60) fin(); };
+    const ko = e => { ultimoErr = e.code; if (e.code === 1) fin(); };
+    navigator.geolocation.getCurrentPosition(ok, ko, { enableHighAccuracy: false, maximumAge: 120000, timeout: 20000 });
+    try { w = navigator.geolocation.watchPosition(ok, ko, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 }); } catch { }
+    const t2 = setTimeout(() => { if (mejor) fin(); }, 5000); // con una posición aceptable en 5 s, no esperamos más
+    const t1 = setTimeout(fin, 20000);
   });
 }
+const GEO_ERR = { denegado: 'permiso de ubicación denegado', tiempo_agotado: 'el GPS no respondió a tiempo', no_disponible: 'el móvil no pudo calcular la posición (¿ubicación del sistema apagada?)', no_soportado: 'el navegador no admite ubicación' };
 
 async function avisoGeo() {
   if (S.perfil.geoAceptadoTs) return true;
@@ -737,9 +755,9 @@ async function fichar(tipo, diaJornada, turno) {
     });
     audit('fichaje', `${TIPOS[tipo]}${fueraRadio ? ` (fuera de zona, ${distanciaM} m)` : ''}`);
     m.close();
-    const geoTxt = geo ? (distanciaM != null ? (fueraRadio ? ` · ubicación a ${distanciaM} m del centro` : ' · ubicación verificada') : ' · ubicación registrada') : (geoError ? ' · sin ubicación' : '');
+    const geoTxt = geo ? (distanciaM != null ? (fueraRadio ? ` · ubicación a ${distanciaM} m del centro` : ' · ubicación verificada') : ' · ubicación registrada') : (geoError ? ` · sin ubicación: ${GEO_ERR[geoError] || geoError}` : '');
     toast(`${TIPOS[tipo]} registrada a las ${hora(new Date())}${geoTxt}`, fueraRadio ? '' : 'ok');
-    if (geoError === 'denegado' && !sessionStorage.getItem('cp_geo_help')) { sessionStorage.setItem('cp_geo_help', '1'); setTimeout(ayudaGeo, 600); }
+    if (geoError && geoError !== 'tiempo_agotado' && !sessionStorage.getItem('cp_geo_help')) { sessionStorage.setItem('cp_geo_help', '1'); setTimeout(ayudaGeo, 600); }
     if (navigator.vibrate) navigator.vibrate(60);
     route();
   } catch (e) { m.close(); toast(errMsg(e), 'err'); }
@@ -994,7 +1012,7 @@ function modalEmpleado(u) {
     <form id="f-emp"><div class="grid2"><div><label>Nombre</label><input name="nombre" value="${esc(u.nombre)}" required></div><div><label>Apellidos</label><input name="apellidos" value="${esc(u.apellidos)}" required></div></div>
     <div class="grid2"><div><label>DNI/NIE</label><input name="dni" value="${esc(u.dni)}" required></div><div><label>Teléfono</label><input name="telefono" value="${esc(u.telefono)}"></div></div>
     <label>Email (usuario de acceso)</label><input name="email" type="email" value="${esc(u.email)}" ${nuevo ? 'required' : 'disabled'}>
-    <div class="grid2"><div><label>Centro habitual</label><select name="centroId"><option value="">—</option>${S.centros.filter(c => c.activo !== false).map(c => `<option value="${c.id}" ${c.id === u.centroId ? 'selected' : ''}>${esc(c.nombre)}</option>`).join('')}</select></div>
+    <div class="grid2"><div><label>Centro habitual</label><select name="centroId"><option value="">—</option>${S.centros.filter(c => c.activo !== false && !c.eliminado).map(c => `<option value="${c.id}" ${c.id === u.centroId ? 'selected' : ''}>${esc(c.nombre)}</option>`).join('')}</select></div>
     <div><label>Rol</label><select name="rol"><option value="empleado" ${u.rol === 'empleado' ? 'selected' : ''}>Empleado</option><option value="admin" ${u.rol === 'admin' ? 'selected' : ''}>Administrador</option></select></div></div>
     <div class="grid2"><div><label>Contrato</label><select name="contrato">${Object.entries(CONTRATOS).map(([k, v]) => `<option value="${k}" ${k === u.contrato ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
     <div><label>Jornada diaria (h)</label><input name="jornadaDiariaH" type="number" step="0.25" min="0" max="12" value="${u.jornadaDiariaH ?? 8}"></div></div>
@@ -1054,7 +1072,7 @@ RUTAS['admin/centros'] = async el => {
   await cargarCentros();
   el.innerHTML = `<div class="row between"><h1>Centros de trabajo</h1><button class="btn pri sm" id="b-new">+ Nuevo</button></div>
     <p class="sub">Aparcamientos, recintos feriales o eventos donde se ficha. Con coordenadas, la app marca los fichajes hechos fuera de la zona.</p>
-    <div class="card list" style="margin-top:12px">${S.centros.map(c => `<div class="it clickable" data-c="${c.id}"><div class="grow"><div class="t1">${esc(c.nombre)}</div><div class="t2">${esc(c.direccion || '')}${c.lat != null && c.lat !== '' ? ` · radio ${c.radioM || S.empresa.radioDefectoM || 300} m` : ' · sin coordenadas'}</div></div>${c.activo === false ? '<span class="tag">inactivo</span>' : '<span class="tag green">activo</span>'}</div>`).join('') || '<div class="empty">Aún no hay centros</div>'}</div>`;
+    <div class="card list" style="margin-top:12px">${S.centros.filter(c => !c.eliminado).map(c => `<div class="it clickable" data-c="${c.id}"><div class="grow"><div class="t1">${esc(c.nombre)}</div><div class="t2">${esc(c.direccion || '')}${c.lat != null && c.lat !== '' ? ` · radio ${c.radioM || S.empresa.radioDefectoM || 300} m` : ' · sin coordenadas'}</div></div>${c.activo === false ? '<span class="tag">inactivo</span>' : '<span class="tag green">activo</span>'}</div>`).join('') || '<div class="empty">Aún no hay centros</div>'}</div>`;
   $('#b-new').onclick = () => modalCentro(null);
   $$('[data-c]', el).forEach(i => i.onclick = () => modalCentro(centroById(i.dataset.c)));
 };
@@ -1067,8 +1085,19 @@ function modalCentro(c) {
     <button type="button" class="btn sm" id="c-gps" style="margin-top:8px">Usar mi ubicación actual</button>
     <label style="display:flex;gap:8px;align-items:center;margin-top:14px"><input type="checkbox" name="activo" ${c.activo !== false ? 'checked' : ''}> Centro activo</label>
     <div class="err-box" id="c-err"></div>
-    <div class="acts"><button type="button" class="btn" data-close>Cancelar</button><button class="btn pri">Guardar</button></div></form>`);
-  $('#c-gps', m).onclick = async () => { const r = await obtenerUbicacion(); if (r.error) return toast('No se pudo obtener la ubicación', 'err'); const f = $('#f-c', m); f.lat.value = r.lat; f.lng.value = r.lng; };
+    <div class="acts"><button type="button" class="btn" data-close>Cancelar</button><button class="btn pri">Guardar</button></div></form>
+    ${nuevo ? '' : '<hr><button type="button" class="btn danger block" id="c-del">Eliminar centro</button>'}`);
+  const del = $('#c-del', m); if (del) del.onclick = async () => {
+    if (!(await confirmar('Eliminar centro', `"${esc(c.nombre)}" desaparecerá de la app y no se podrá asignar a turnos ni empleados. Los fichajes antiguos hechos allí se conservan con su nombre en los informes.`, { ok: 'Eliminar', danger: true }))) return;
+    try {
+      await F.updateDoc(F.doc(db, 'centros', c.id), { eliminado: true, activo: false, eliminadoTs: F.serverTimestamp() });
+      const afectados = S.usuarios.filter(u => u.centroId === c.id);
+      await Promise.all(afectados.map(u => F.updateDoc(F.doc(db, 'usuarios', u.id), { centroId: null })));
+      audit('centro_eliminado', c.nombre, { centroId: c.id });
+      m.close(); toast('Centro eliminado', 'ok'); await cargarCentros(); route();
+    } catch (er) { $('#c-err', m).textContent = errMsg(er); }
+  };
+  $('#c-gps', m).onclick = async () => { const r = await obtenerUbicacion(); if (r.error) return toast('No se pudo obtener la ubicación: ' + (GEO_ERR[r.error] || r.error), 'err'); const f = $('#f-c', m); f.lat.value = r.lat; f.lng.value = r.lng; };
   $('#f-c', m).onsubmit = async e => {
     e.preventDefault(); const f = e.target;
     const lat = f.lat.value.trim().replace(',', '.'), lng = f.lng.value.trim().replace(',', '.');
@@ -1091,7 +1120,7 @@ RUTAS['admin/turnos'] = async el => {
   const key = (u, d) => u + '|' + d; const mapa = new Map();
   ts.forEach(t => { const k = key(t.uid, t.fecha); if (!mapa.has(k)) mapa.set(k, []); mapa.get(k).push(t); });
   el.innerHTML = `<div class="row between wrap"><h1>Turnos</h1><div class="row"><button class="btn sm" id="w-prev">‹</button><b>${diaFmt(dias[0]).slice(0, 5)} – ${diaFmt(dias[6])}</b><button class="btn sm" id="w-next">›</button></div></div>
-    <div class="row wrap" style="margin:10px 0"><select id="w-c" style="max-width:260px"><option value="">Todos los centros</option>${S.centros.map(c => `<option value="${c.id}" ${c.id === centroFiltro ? 'selected' : ''}>${esc(c.nombre)}</option>`).join('')}</select>
+    <div class="row wrap" style="margin:10px 0"><select id="w-c" style="max-width:260px"><option value="">Todos los centros</option>${S.centros.filter(c => !c.eliminado).map(c => `<option value="${c.id}" ${c.id === centroFiltro ? 'selected' : ''}>${esc(c.nombre)}</option>`).join('')}</select>
     <button class="btn sm" id="w-copy">Copiar semana anterior</button><button class="btn sm" id="w-hoy">Hoy</button></div>
     <p class="sub" style="margin-bottom:10px">Pulsa una casilla para asignar o quitar turnos. Los empleados lo ven al momento en "Horario".</p>
     <div class="tw"><div class="wk"><div class="h"></div>${dias.map(d => `<div class="h ${d === hoy ? 'today' : ''}">${diaCorto(d)}</div>`).join('')}
@@ -1118,7 +1147,7 @@ function modalTurno(u, dia, existentes, semana) {
     ${existentes.length ? `<div class="card list" style="margin-top:10px">${existentes.map(t => `<div class="it"><div class="grow"><div class="t1">${t.inicio} – ${t.fin}</div><div class="t2">${esc(centroById(t.centroId)?.nombre || '')} ${esc(t.notas || '')}</div></div><button class="btn danger sm" data-del="${t.id}">Quitar</button></div>`).join('')}</div>` : ''}
     <h3 style="margin-top:12px">Añadir turno</h3>
     <div class="grid2"><div><label>Inicio</label><input type="time" id="t-i" value="09:00"></div><div><label>Fin</label><input type="time" id="t-f" value="14:00"></div></div>
-    <label>Centro</label><select id="t-c">${S.centros.filter(c => c.activo !== false).map(c => `<option value="${c.id}" ${c.id === (centroFiltro || u.centroId) ? 'selected' : ''}>${esc(c.nombre)}</option>`).join('')}<option value="">—</option></select>
+    <label>Centro</label><select id="t-c">${S.centros.filter(c => c.activo !== false && !c.eliminado).map(c => `<option value="${c.id}" ${c.id === (centroFiltro || u.centroId) ? 'selected' : ''}>${esc(c.nombre)}</option>`).join('')}<option value="">—</option></select>
     <label>Notas</label><input id="t-n" placeholder="Ej.: puerta norte">
     <label style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" id="t-rep"> Repetir de lunes a viernes de esta semana</label>
     <p class="sub" style="font-size:12px;margin-top:6px">Si el fin es anterior al inicio, se entiende que termina al día siguiente.</p>
@@ -1240,22 +1269,62 @@ RUTAS['admin/informes'] = async el => {
   };
 };
 
-function imprimir(lista) {
-  if (!lista.length) return toast('No hay datos para imprimir');
-  const e = S.empresa;
-  const hastaConserv = mes => { const [y, m] = mes.split('-').map(Number); return `${new Date(Date.UTC(y, m, 0)).getUTCDate()}/${pad(m)}/${y + RETENCION_ANIOS}`; };
-  $('#print-root').innerHTML = lista.map(({ usuario: u, mes, res, cierre }) => `<section class="pr">
-    <div class="phd"><div class="lg"><img src="img/icono-blanco.png" alt=""></div><div><h1>Registro diario de jornada — ${mesNombre(mes)}</h1><div style="font-size:9pt">${esc(e.nombre)} · CIF ${esc(e.cif)}</div></div></div>
-    <div class="meta"><div><b>Empresa:</b> ${esc(e.nombre)}<br><b>CIF:</b> ${esc(e.cif)}<br><b>Domicilio:</b> ${esc(e.direccion || '')}</div>
-    <div><b>Trabajador/a:</b> ${esc(nombreDe(u))}<br><b>DNI/NIE:</b> ${esc(u.dni || '')}<br><b>Centro habitual:</b> ${esc(centroById(u.centroId)?.nombre || '—')} · <b>Contrato:</b> ${esc(CONTRATOS[u.contrato] || '')}</div></div>
-    <table><thead><tr><th>Fecha</th><th>Turno previsto</th><th>Entrada / salida (tramos)</th><th>Pausas</th><th>Horas</th><th>Extra</th><th>Observaciones</th></tr></thead><tbody>
-    ${res.filas.map(r => `<tr><td>${diaCorto(r.dia)}</td><td>${r.turnos.map(t => `${t.inicio}–${t.fin}`).join(', ')}</td><td>${r.j ? r.j.tramos.map(([a, b]) => `${hora(a)}–${hora(b)}`).join(', ') : ''}</td><td>${r.j?.pausaMs ? dur(r.j.pausaMs) : ''}</td><td>${r.j ? dur(r.trab) : ''}</td><td>${r.extra ? dur(r.extra) : ''}</td><td>${[r.aus ? AUSENCIAS[r.aus.tipo] : '', r.j?.corregido ? 'Corregido (ver trazabilidad)' : '', ...(r.j?.incid || [])].filter(Boolean).join('; ')}</td></tr>`).join('')}
-    <tr class="tot"><td colspan="4">Totales del mes (${res.dias} días trabajados)</td><td>${dur(res.tot)}</td><td>${dur(res.extra)}</td><td>Previstas: ${dur(res.prev)}</td></tr></tbody></table>
-    ${cierre ? `<p style="margin-top:3mm;font-size:9pt"><b>Cierre mensual:</b> ${fechaHora(toDate(cierre.creadoTs))}. Horas extra: ${dur(cierre.extraMs)} (${{ pago: 'retribuidas', descanso: 'compensadas con descanso', ninguna: 'no aplica' }[cierre.compensacion]}). ${cierre.firmadoTs ? `Firmado electrónicamente por el trabajador el ${fechaHora(toDate(cierre.firmadoTs))}: ${cierre.firmaConforme ? 'CONFORME' : 'NO CONFORME'}${cierre.firmaComentario ? ' — ' + esc(cierre.firmaComentario) : ''}.` : 'Pendiente de firma del trabajador.'}<br>Huella SHA-256: ${esc(cierre.huella)}</p>` : ''}
-    <div class="firmas"><div>Firma de la empresa</div><div>Firma del trabajador/a</div></div>
-    <p class="legal">Registro diario de jornada conforme al art. 34.9 del Estatuto de los Trabajadores (Real Decreto-ley 8/2019). Las horas extraordinarias se totalizan mensualmente según el art. 35.5 ET. Las horas de los fichajes las fija el servidor en el momento del registro y no pueden alterarse; cualquier corrección consta con autor, fecha y motivo. Documento a conservar durante ${RETENCION_ANIOS} años (hasta ${hastaConserv(mes)}) a disposición de la persona trabajadora, sus representantes legales y la Inspección de Trabajo y Seguridad Social. Generado el ${fechaHora(new Date())}.</p></section>`).join('');
-  audit('informe_pdf', lista.map(x => `${nombreDe(x.usuario)} ${x.mes}`).join(', '));
-  setTimeout(() => window.print(), 50);
+// Genera un PDF de verdad (funciona en iPhone y en la app instalada, donde window.print() no hace nada).
+function cargarScript(src) { return new Promise((ok, ko) => { if ([...document.scripts].some(x => x.src === src)) return ok(); const sc = document.createElement('script'); sc.src = src; sc.onload = ok; sc.onerror = () => ko(new Error('No se pudo cargar el generador de PDF. Revisa la conexión.')); document.head.appendChild(sc); }); }
+async function imgData(src) { const b = await (await fetch(src)).blob(); return new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(b); }); }
+async function imprimir(lista) {
+  if (!lista.length) return toast('No hay datos para el informe');
+  const m = modal(`<h2 style="text-align:center">Generando PDF</h2><div class="spin"></div>`);
+  try {
+    await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js');
+    const { jsPDF } = window.jspdf; const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const logo = await imgData('img/icon-192.png').catch(() => null);
+    const e = S.empresa, AZ = [82, 113, 255], W = 210, M = 14;
+    const hastaConserv = mes => { const [y, mm] = mes.split('-').map(Number); return `${new Date(Date.UTC(y, mm, 0)).getUTCDate()}/${pad(mm)}/${y + RETENCION_ANIOS}`; };
+    const txt = (t, x, y, o = {}) => { doc.setFont('helvetica', o.b ? 'bold' : 'normal'); doc.setFontSize(o.s || 9); doc.setTextColor(...(o.c || [20, 20, 30])); doc.text(Array.isArray(t) ? t : String(t), x, y, o.a ? { align: o.a, maxWidth: o.w } : { maxWidth: o.w }); };
+    lista.forEach(({ usuario: u, mes, res, cierre }, idx) => {
+      if (idx) doc.addPage();
+      if (logo) doc.addImage(logo, 'PNG', M, 12, 14, 14);
+      txt('Registro diario de jornada', M + 18, 18, { b: 1, s: 15 });
+      txt(mesNombre(mes).replace(/^./, c => c.toUpperCase()), M + 18, 24, { s: 10, c: [90, 98, 120] });
+      doc.setDrawColor(...AZ); doc.setLineWidth(0.6); doc.line(M, 30, W - M, 30);
+      txt('Empresa', M, 37, { b: 1, s: 8, c: [90, 98, 120] }); txt('Trabajador/a', W / 2, 37, { b: 1, s: 8, c: [90, 98, 120] });
+      txt(`${e.nombre}\nCIF: ${e.cif}\n${e.direccion || ''}`, M, 42, { w: W / 2 - M - 4 });
+      txt(`${nombreDe(u)}\nDNI/NIE: ${u.dni || '—'}\nCentro: ${centroById(u.centroId)?.nombre || '—'} · ${CONTRATOS[u.contrato] || ''}`, W / 2, 42, { w: W / 2 - M });
+      const filas = res.filas.map(r => [diaCorto(r.dia), r.turnos.map(t => `${t.inicio}–${t.fin}`).join('\n'), r.j ? r.j.tramos.map(([a, b]) => `${hora(a)}–${hora(b)}`).join('\n') : '', r.j?.pausaMs ? dur(r.j.pausaMs) : '', r.j ? dur(r.trab) : '', r.extra ? dur(r.extra) : '', [r.aus ? AUSENCIAS[r.aus.tipo] : '', r.j?.corregido ? 'Corregido' : '', ...(r.j?.incid || [])].filter(Boolean).join('; ')]);
+      doc.autoTable({
+        startY: 58, margin: { left: M, right: M }, theme: 'grid',
+        head: [['Fecha', 'Turno previsto', 'Entrada – salida', 'Pausas', 'Horas', 'Extra', 'Observaciones']],
+        body: filas.length ? filas : [['', '', 'Sin registros este mes', '', '', '', '']],
+        foot: [[{ content: `Totales (${res.dias} días trabajados) · previstas ${dur(res.prev)}`, colSpan: 4 }, dur(res.tot), dur(res.extra), '']],
+        styles: { fontSize: 8, cellPadding: 1.6, lineColor: [205, 210, 225], lineWidth: 0.2, textColor: [25, 25, 35] },
+        headStyles: { fillColor: AZ, textColor: 255, fontStyle: 'bold' }, footStyles: { fillColor: [238, 241, 255], textColor: [20, 20, 30], fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [248, 249, 253] }, columnStyles: { 4: { halign: 'right' }, 5: { halign: 'right' }, 6: { cellWidth: 40 } },
+      });
+      let y = doc.lastAutoTable.finalY + 7;
+      const nueva = h => { if (y + h > 285) { doc.addPage(); y = 20; } };
+      if (cierre) {
+        const t = `Cierre mensual: ${fechaHora(toDate(cierre.creadoTs))}. Horas extra: ${dur(cierre.extraMs)} (${{ pago: 'retribuidas', descanso: 'compensadas con descanso', ninguna: 'no aplica' }[cierre.compensacion] || '—'}). ${cierre.firmadoTs ? `Firmado electrónicamente por el trabajador el ${fechaHora(toDate(cierre.firmadoTs))}: ${cierre.firmaConforme ? 'CONFORME' : 'NO CONFORME'}${cierre.firmaComentario ? ' — ' + cierre.firmaComentario : ''}.` : 'Pendiente de firma del trabajador.'}\nHuella SHA-256: ${cierre.huella}`;
+        const l = doc.splitTextToSize(t, W - 2 * M); nueva(l.length * 4 + 4); txt(l, M, y, { s: 8 }); y += l.length * 4 + 4;
+      }
+      nueva(32); y += 14; doc.setDrawColor(60); doc.setLineWidth(0.3);
+      doc.line(M, y, M + 75, y); doc.line(W - M - 75, y, W - M, y);
+      txt('Firma de la empresa', M, y + 4, { s: 8 }); txt('Firma del trabajador/a', W - M - 75, y + 4, { s: 8 }); y += 12;
+      const legal = doc.splitTextToSize(`Registro diario de jornada conforme al art. 34.9 del Estatuto de los Trabajadores (Real Decreto-ley 8/2019). Las horas extraordinarias se totalizan mensualmente según el art. 35.5 ET. Las horas de los fichajes las fija el servidor en el momento del registro y no pueden alterarse; cualquier corrección consta con autor, fecha y motivo. Documento a conservar durante ${RETENCION_ANIOS} años (hasta ${hastaConserv(mes)}) a disposición de la persona trabajadora, sus representantes legales y la Inspección de Trabajo y Seguridad Social. Generado el ${fechaHora(new Date())}.`, W - 2 * M);
+      nueva(legal.length * 3.2); txt(legal, M, y, { s: 7, c: [90, 98, 120] });
+    });
+    const n = doc.getNumberOfPages(); for (let i = 1; i <= n; i++) { doc.setPage(i); txt(`${e.nombre} · Página ${i} de ${n}`, W / 2, 292, { s: 7, c: [140, 146, 165], a: 'center' }); }
+    const nombre = lista.length === 1 ? `registro_${nombreDe(lista[0].usuario).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\W+/g, '_')}_${lista[0].mes}.pdf` : `registro_jornada_${lista[0].mes}.pdf`;
+    const blob = doc.output('blob'); const file = new File([blob], nombre, { type: 'application/pdf' });
+    m.close();
+    audit('informe_pdf', lista.map(x => `${nombreDe(x.usuario)} ${x.mes}`).join(', '));
+    // En el móvil se abre el menú de compartir (guardar en Archivos, enviar por WhatsApp/email…); en el ordenador se descarga.
+    const movil = matchMedia('(pointer:coarse)').matches;
+    const m2 = modal(`<h2>PDF listo</h2><p class="sub">${esc(nombre)}</p><div class="acts">${movil && navigator.canShare?.({ files: [file] }) ? '<button class="btn" id="p-share">Compartir</button>' : ''}<button class="btn pri" id="p-open">Abrir / descargar</button></div>`);
+    const sh = $('#p-share', m2); if (sh) sh.onclick = async () => { try { await navigator.share({ files: [file], title: nombre }); m2.close(); } catch (er) { if (er.name !== 'AbortError') toast(errMsg(er), 'err'); } };
+    $('#p-open', m2).onclick = () => { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = nombre; if (movil) a.target = '_blank'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 60000); m2.close(); };
+  } catch (er) { m.close(); toast(errMsg(er), 'err'); }
 }
 
 /* ================= ADMIN: auditoría ================= */
