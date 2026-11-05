@@ -151,9 +151,9 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .day{border-bottom:1px solid var(--line);padding:12px 0}
 .day:first-child{padding-top:2px}.day:last-child{border:0;padding-bottom:2px}
 .day .hd{display:flex;align-items:center;gap:12px;cursor:pointer}
-.day .dn{width:44px;height:48px;border-radius:12px;background:var(--bg2);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none}
-.day .dn b{font-size:17px;line-height:1}
-.day .dn span{font-size:10px;color:var(--mut);text-transform:uppercase;font-weight:800;margin-top:3px}
+.day .dn,.dn2{width:44px;height:48px;border-radius:12px;background:var(--bg2);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none}
+.day .dn b,.dn2 b{font-size:17px;line-height:1}
+.day .dn span,.dn2 span{font-size:10px;color:var(--mut);text-transform:uppercase;font-weight:800;margin-top:3px}
 .day .det{margin:10px 0 0 56px}
 /* cuadrante */
 .wk{display:grid;grid-template-columns:120px repeat(7,minmax(88px,1fr));min-width:740px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
@@ -166,6 +166,26 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .sh{background:rgba(82,113,255,.16);border:1px solid rgba(82,113,255,.4);color:var(--txt);border-radius:8px;padding:4px 6px;margin-bottom:3px;font-variant-numeric:tabular-nums;font-weight:800}
 .sh small{display:block;color:var(--mut);font-size:10px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ab{background:rgba(251,191,75,.12);border:1px solid rgba(251,191,75,.3);border-radius:8px;padding:4px 6px;color:var(--amber);margin-bottom:3px;font-weight:700}
+/* editor de jornada y horarios */
+.ed-row{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:10px}
+.ed-row.pausa{border-color:rgba(251,191,75,.3)}
+.ed-row .eh{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:13px}
+.ed-g{display:grid;grid-template-columns:58px 1.15fr 1fr;gap:8px;align-items:center;margin-top:8px}
+.ed-g span{font-size:12px;font-weight:800;color:var(--mut)}
+.ed-g input{padding:10px 6px;min-width:0;width:100%;font-size:15px}
+.ed-g input[type=date]::-webkit-calendar-picker-indicator,.ed-g input[type=time]::-webkit-calendar-picker-indicator{margin-left:2px;padding:0}
+.ed-g.chg input{border-color:rgba(251,191,75,.6)}
+.hd-row{display:grid;grid-template-columns:70px 1fr 1fr;gap:8px;align-items:center;margin-top:8px}
+.hd-row .p2{grid-column:2/4;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hd-row input[type=time]{padding:9px 6px;min-width:0}
+.hd-row.off input[type=time]{opacity:.35}
+.sw{display:flex;gap:8px;flex-wrap:wrap}
+.sw button{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer}
+.sw button.on{border-color:#fff;box-shadow:0 0 0 2px var(--brand)}
+.hz{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.ck-list{max-height:220px;overflow:auto;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:4px 12px}
+.ck-list label{margin:0;padding:9px 0;border-bottom:1px solid var(--line)}
+.ck-list label:last-child{border:0}
 /* modal */
 .mbg{position:fixed;inset:0;z-index:50;background:rgba(5,7,12,.65);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;animation:fade .15s}
 @media(min-width:640px){.mbg{align-items:center}}
@@ -271,6 +291,9 @@ function addMonths(mes, n) { const [y, m] = mes.split('-').map(Number); const d 
 function diasDelMes(mes) { const [y, m] = mes.split('-').map(Number); const n = new Date(Date.UTC(y, m, 0)).getUTCDate(); return Array.from({ length: n }, (_, i) => `${mes}-${pad(i + 1)}`); }
 function lunesDe(dia) { const [y, m, d] = dia.split('-').map(Number); const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); return addDays(dia, -((wd + 6) % 7)); }
 const dowCorto = dia => { const [y, m, d] = dia.split('-').map(Number); return ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'][new Date(Date.UTC(y, m - 1, d)).getUTCDay()]; };
+const dowNum = dia => { const [y, m, d] = dia.split('-').map(Number); return (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7 + 1; }; // 1 = lunes … 7 = domingo
+const DIAS_SEM = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+const COLORES = ['#5271FF', '#34D399', '#FBBF4B', '#FF6B7A', '#A78BFA', '#22D3EE', '#F472B6', '#94A3B8'];
 const diaCorto = dia => `${dowCorto(dia)} ${+dia.slice(8)}/${+dia.slice(5, 7)}`;
 const diaFmt = dia => dia ? `${dia.slice(8)}/${dia.slice(5, 7)}/${dia.slice(0, 4)}` : '—';
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -455,7 +478,7 @@ async function contarPendientes() {
   if (!esAdmin()) return;
   try {
     const [c, a] = await Promise.all([q('correcciones', W('estado', '==', 'pendiente')), q('ausencias', W('estado', '==', 'pendiente'))]);
-    S.pendientes = c.length + a.length;
+    S.pendientes = new Set(c.map(x => `${x.uid}|${x.dia}|${x.motivo}|${x.autorUid}`)).size + a.length;
     const b = $('#nav-badge'); if (b) { b.textContent = S.pendientes; b.classList.toggle('hidden', !S.pendientes); }
   } catch (e) { console.warn(e); }
 }
@@ -779,8 +802,8 @@ RUTAS['horario'] = async el => {
     html += `<h2>Semana del ${diaFmt(sem[0]).slice(0, 5)} <span class="sub">· ${dur(minSem * 60000)} previstas</span></h2><div class="card list">`;
     html += sem.map(d => {
       const t = (tpd.get(d) || []).sort((a, b) => a.inicio.localeCompare(b.inicio)); const a = ausenciaEn(aus, uid, d);
-      return `<div class="it" style="${d === hoy ? 'background:rgba(75,158,255,.06);margin:0 -14px;padding:12px 14px' : ''}"><div class="dn" style="width:46px;text-align:center"><b style="display:block;font-size:18px">${+d.slice(8)}</b><span class="sub" style="font-size:11px;text-transform:uppercase">${dowCorto(d)}</span></div>
-      <div class="grow">${a ? `<span class="tag amber">${esc(AUSENCIAS[a.tipo])}</span>` : ''}${t.length ? t.map(x => `<div class="t1">${x.inicio} – ${x.fin} <span class="sub" style="font-weight:400">${esc(centroById(x.centroId)?.nombre || '')}${x.notas ? ' · ' + esc(x.notas) : ''}</span></div>`).join('') : (a ? '' : '<span class="sub">Libre</span>')}</div></div>`;
+      return `<div class="it" style="${d === hoy ? 'background:rgba(82,113,255,.1);margin:0 -16px;padding:12px 16px' : ''}"><div class="dn dn2" style="${d === hoy ? 'border-color:var(--brand)' : ''}"><b>${+d.slice(8)}</b><span>${dowCorto(d)}</span></div>
+      <div class="grow">${a ? `<span class="tag amber">${esc(AUSENCIAS[a.tipo])}</span>` : ''}${t.length ? t.map(x => `<div class="t1">${x.color ? `<span class="hz" style="background:${x.color}"></span>` : ''}${x.inicio} – ${x.fin} <span class="sub" style="font-weight:600">${esc([x.horarioNombre, centroById(x.centroId)?.nombre, x.notas].filter(Boolean).join(' · '))}</span></div>`).join('') : (a ? '' : '<span class="sub">Libre</span>')}</div></div>`;
     }).join('') + '</div>';
   }
   el.innerHTML = html;
@@ -788,8 +811,9 @@ RUTAS['horario'] = async el => {
 
 /* ================= días (compartido) ================= */
 function htmlDias(usuario, res, { admin = false } = {}) {
-  if (!res.filas.length) return '<div class="empty">No hay registros este mes.</div>';
-  return res.filas.slice().reverse().map(f => {
+  const hoy = diaHoy(), filas = res.filas.filter(f => f.dia <= hoy); // los días futuros con turno se ven en "Horario"
+  if (!filas.length) return '<div class="empty">No hay registros este mes.</div>';
+  return filas.slice().reverse().map(f => {
     const j = f.j; const tramos = j ? j.tramos.map(([a, b]) => `${hora(a)}–${hora(b)}`).join(', ') : '';
     const abierto = j && j.estado !== 'fuera' ? `${hora(j.ini || j.pIni)}–…` : '';
     return `<div class="day" data-dia="${f.dia}"><div class="hd">
@@ -801,54 +825,111 @@ function htmlDias(usuario, res, { admin = false } = {}) {
         ${e.modificado ? `<span class="tag amber" title="${esc(e.correccion?.motivo)}">antes ${hora(e.original)}</span>` : ''}${e.anadido ? `<span class="tag amber" title="${esc(e.correccion?.motivo)}">añadido</span>` : ''}
         ${admin && e.geo ? `<a class="tag" href="https://maps.google.com/?q=${e.geo.lat},${e.geo.lng}" target="_blank" rel="noopener">${e.distanciaM != null ? e.distanciaM + ' m' : 'mapa'}</a>` : ''}${admin && e.geoError ? `<span class="tag">sin ubicación</span>` : ''}</li>`).join('')}</ul>
         ${j.pausaMs ? `<p class="sub">Pausas: ${dur(j.pausaMs)}</p>` : ''}` : ''}
-        <button class="btn sm" style="margin-top:8px" data-corr="${f.dia}">${admin ? 'Corregir' : 'Solicitar corrección'}</button></div></div>`;
+        <button class="btn sm" style="margin-top:8px" data-corr="${f.dia}">${admin ? 'Editar jornada' : 'Corregir jornada'}</button></div></div>`;
   }).join('');
 }
 function bindDias(root, usuario, datos, onDone, admin) {
   $$('.day .hd', root).forEach(h => h.onclick = () => $('.det', h.parentElement).classList.toggle('hidden'));
-  $$('[data-corr]', root).forEach(b => b.onclick = () => modalCorreccion(usuario, b.dataset.corr, datos.jornadas.get(b.dataset.corr), admin, onDone));
+  $$('[data-corr]', root).forEach(b => b.onclick = () => modalCorreccion(usuario, b.dataset.corr, datos.jornadas.get(b.dataset.corr), admin, onDone, datos.turnos.filter(t => t.fecha === b.dataset.corr)));
 }
 
-function modalCorreccion(usuario, dia, jornada, admin, onDone) {
-  const evs = (jornada?.eventos || []);
-  const m = modal(`<h2>${admin ? 'Corregir registro' : 'Solicitar corrección'}</h2>
-    <p class="sub">${esc(nombreDe(usuario))} · jornada del ${diaFmt(dia)}</p>
-    <label>¿Qué quieres hacer?</label>
-    <div class="seg" id="c-acc"><button type="button" data-v="anadir" class="on">Añadir fichaje</button><button type="button" data-v="modificar" ${evs.length ? '' : 'disabled'}>Cambiar hora</button><button type="button" data-v="anular" ${evs.length ? '' : 'disabled'}>Anular</button></div>
-    <div id="c-sel" class="hidden"><label>Fichaje</label><select id="c-fid">${evs.map(e => `<option value="${e.id}" data-ts="${e.ts.getTime()}">${hora(e.ts)} · ${TIPOS[e.tipo]}</option>`).join('')}</select></div>
-    <div id="c-tipo"><label>Tipo</label><select id="c-t">${Object.entries(TIPOS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></div>
-    <div id="c-when" class="grid2"><div><label>Fecha</label><input type="date" id="c-d" value="${dia}"></div><div><label>Hora</label><input type="time" id="c-h" required></div></div>
+// Editor de jornada: se corrigen entrada y salida (y pausas) a la vez.
+// Cada cambio genera un registro de corrección trazable; los fichajes originales nunca se tocan.
+function paresJornada(evs) {
+  const rows = []; let cur = null, pz = null;
+  for (const e of evs) {
+    if (e.tipo === 'entrada') { if (cur) rows.push(cur); cur = { k: 'jornada', a: e, b: null }; }
+    else if (e.tipo === 'salida') { if (cur) { cur.b = e; rows.push(cur); cur = null; } else rows.push({ k: 'jornada', a: null, b: e }); }
+    else if (e.tipo === 'pausa_inicio') { if (pz) rows.push(pz); pz = { k: 'pausa', a: e, b: null }; }
+    else if (e.tipo === 'pausa_fin') { if (pz) { pz.b = e; rows.push(pz); pz = null; } else rows.push({ k: 'pausa', a: null, b: e }); }
+  }
+  if (cur) rows.push(cur); if (pz) rows.push(pz);
+  const t = r => (r.a || r.b).ts;
+  return [...rows.filter(r => r.k === 'jornada').sort((x, y) => t(x) - t(y)), ...rows.filter(r => r.k === 'pausa').sort((x, y) => t(x) - t(y))];
+}
+function modalCorreccion(usuario, dia, jornada, admin, onDone, turnosDia = []) {
+  const evs = jornada?.eventos || [];
+  let rows = paresJornada(evs).map(r => ({ ...r, quitada: false }));
+  if (!rows.length) { // día sin fichajes: propone el turno previsto
+    const ts = turnosDia.slice().sort((x, y) => x.inicio.localeCompare(y.inicio));
+    rows = (ts.length ? ts : [null]).map(t => ({ k: 'jornada', a: null, b: null, quitada: false, pre: t ? { ai: t.inicio, bi: t.fin } : null }));
+  }
+  const LBL = { jornada: ['Entrada', 'Salida', 'Tramo de trabajo'], pausa: ['Inicio', 'Fin', 'Pausa'] };
+  const finDia = (ini, fin) => (ini && fin && fin <= ini) ? addDays(dia, 1) : dia;
+  const vals = (r, lado) => { const e = r[lado]; if (e) return [diaDe(e.ts), hora(e.ts)]; if (r.pre) { const h = lado === 'a' ? r.pre.ai : r.pre.bi; return [lado === 'b' ? finDia(r.pre.ai, r.pre.bi) : dia, h]; } return [dia, '']; };
+  const m = modal(`<h2>${admin ? 'Corregir jornada' : 'Solicitar corrección'}</h2>
+    <p class="sub">${esc(nombreDe(usuario))} · ${diaCorto(dia)} ${dia.slice(0, 4)}</p>
+    <div id="ed"></div>
+    <div class="row" style="margin-top:10px"><button class="btn sm" id="ed-addj">+ Tramo de trabajo</button><button class="btn sm" id="ed-addp">+ Pausa</button></div>
     <label>Motivo (obligatorio)</label><textarea id="c-mot" placeholder="Ej.: olvidé fichar la salida al terminar el turno"></textarea>
-    ${admin ? '<p class="note">La corrección se aplica al momento y queda registrada con tu nombre, fecha y motivo. El fichaje original no se borra.</p>' : '<p class="note">El administrador revisará la solicitud. El fichaje original se conserva siempre.</p>'}
+    <p class="note">${admin ? 'Los cambios se aplican al momento y quedan registrados con tu nombre, fecha y motivo.' : 'El administrador revisará la solicitud.'} Los fichajes originales se conservan siempre. Si la salida es al día siguiente, cambia su fecha.</p>
     <div class="err-box" id="c-err"></div>
-    <div class="acts"><button class="btn" data-close>Cancelar</button><button class="btn pri" id="c-ok">${admin ? 'Aplicar' : 'Enviar'}</button></div>`);
-  let acc = 'anadir';
-  const upd = () => {
-    $$('#c-acc button', m).forEach(b => b.classList.toggle('on', b.dataset.v === acc));
-    $('#c-sel', m).classList.toggle('hidden', acc === 'anadir'); $('#c-tipo', m).classList.toggle('hidden', acc !== 'anadir'); $('#c-when', m).classList.toggle('hidden', acc === 'anular');
-    if (acc === 'modificar') { const o = $('#c-fid', m).selectedOptions[0]; if (o) { const d = new Date(+o.dataset.ts); $('#c-d', m).value = diaDe(d); $('#c-h', m).value = hora(d); } }
+    <div class="acts"><button class="btn" data-close>Cancelar</button><button class="btn pri" id="c-ok">${admin ? 'Guardar cambios' : 'Enviar solicitud'}</button></div>`);
+  const pintar = () => {
+    let nj = 0, np = 0;
+    $('#ed', m).innerHTML = rows.map((r, i) => {
+      if (r.quitada) return '';
+      const n = r.k === 'jornada' ? ++nj : ++np; const [la, lb, tit] = LBL[r.k]; const [da, ha] = vals(r, 'a'), [db_, hb] = vals(r, 'b');
+      return `<div class="ed-row ${r.k}" data-i="${i}"><div class="eh"><span>${tit}${(r.k === 'jornada' ? nj : np) > 1 || rows.filter(x => x.k === r.k && !x.quitada).length > 1 ? ' ' + n : ''}</span><button class="btn sm ghost" data-rm="${i}" style="color:var(--coral)">Quitar</button></div>
+        <div class="ed-g" data-l="a"><span>${la}</span><input type="date" value="${da}" data-f="d"><input type="time" value="${ha}" data-f="h"></div>
+        <div class="ed-g" data-l="b"><span>${lb}</span><input type="date" value="${db_}" data-f="d"><input type="time" value="${hb}" data-f="h"></div></div>`;
+    }).join('') || '<div class="empty">Sin tramos. Añade uno o guarda para anular los fichajes del día.</div>';
+    $$('[data-rm]', m).forEach(b => b.onclick = () => { leer(); rows[+b.dataset.rm].quitada = true; pintar(); });
+    // si cambia la hora de entrada y la salida queda antes, pasa la salida al día siguiente
+    $$('.ed-row', m).forEach(row => $$('input', row).forEach(inp => inp.onchange = () => {
+      const g = x => $(`[data-l="${x}"] [data-f="${inp.dataset.f}"]`, row);
+      const ha = $('[data-l="a"] [data-f="h"]', row).value, hb = $('[data-l="b"] [data-f="h"]', row).value;
+      if (ha && hb && $('[data-l="a"] [data-f="d"]', row).value === dia) $('[data-l="b"] [data-f="d"]', row).value = hb <= ha ? addDays(dia, 1) : dia;
+      $$('.ed-g', row).forEach(gr => gr.classList.add('chg'));
+    }));
   };
-  $$('#c-acc button', m).forEach(b => b.onclick = () => { if (!b.disabled) { acc = b.dataset.v; upd(); } });
-  $('#c-fid', m).onchange = upd;
+  const leer = () => $$('.ed-row', m).forEach(row => { const r = rows[+row.dataset.i]; for (const l of ['a', 'b']) { r['v' + l] = [$(`[data-l="${l}"] [data-f="d"]`, row).value, $(`[data-l="${l}"] [data-f="h"]`, row).value]; } });
+  pintar();
+  $('#ed-addj', m).onclick = () => { leer(); rows.push({ k: 'jornada', a: null, b: null, quitada: false, pre: null }); pintar(); };
+  $('#ed-addp', m).onclick = () => { leer(); rows.push({ k: 'pausa', a: null, b: null, quitada: false, pre: null }); pintar(); };
   $('#c-ok', m).onclick = async () => {
-    const mot = $('#c-mot', m).value.trim(); const err = $('#c-err', m);
-    if (mot.length < 5) return err.textContent = 'Explica el motivo (mínimo 5 caracteres).';
-    const data = { uid: usuario.id, dia, mes: dia.slice(0, 7), accion: acc, motivo: mot, autorUid: S.user.uid, creadoTs: F.serverTimestamp() };
-    if (acc !== 'anular') {
-      const d = $('#c-d', m).value, h = $('#c-h', m).value; if (!d || !h) return err.textContent = 'Indica fecha y hora.';
-      const nt = madridDate(d, h); if (nt > new Date()) return err.textContent = 'No se puede registrar una hora futura.';
-      data.nuevoTs = F.Timestamp.fromDate(nt);
+    leer(); const err = $('#c-err', m); err.textContent = '';
+    const mot = $('#c-mot', m).value.trim(); if (mot.length < 5) return err.textContent = 'Explica el motivo (mínimo 5 caracteres).';
+    const ops = [], ahora = new Date();
+    const tipoDe = (k, l) => k === 'jornada' ? (l === 'a' ? 'entrada' : 'salida') : (l === 'a' ? 'pausa_inicio' : 'pausa_fin');
+    for (const r of rows) {
+      if (r.quitada) { for (const l of ['a', 'b']) if (r[l]) ops.push({ accion: 'anular', ev: r[l] }); continue; }
+      const t = {};
+      for (const l of ['a', 'b']) {
+        const [d, h] = r['v' + l] || ['', '']; t[l] = d && h ? madridDate(d, h) : null;
+        if (t[l] && t[l] > ahora) return err.textContent = `${LBL[r.k][l === 'a' ? 0 : 1]}: no se puede registrar una hora futura.`;
+      }
+      if (t.a && t.b && t.b < t.a) return err.textContent = `${LBL[r.k][2]}: la ${r.k === 'jornada' ? 'salida' : 'vuelta'} debe ser posterior al inicio.`;
+      for (const l of ['a', 'b']) {
+        const ev = r[l], nt = t[l];
+        if (ev && !nt) ops.push({ accion: 'anular', ev });
+        else if (ev && nt && Math.abs(nt - ev.ts) >= 60000) ops.push({ accion: 'modificar', ev, nt });
+        else if (!ev && nt) ops.push({ accion: 'anadir', tipo: tipoDe(r.k, l), nt });
+      }
     }
-    if (acc === 'anadir') data.tipo = $('#c-t', m).value;
-    else { const ev = evs.find(e => e.id === $('#c-fid', m).value); data.fichajeId = ev.id; data.tipo = ev.tipo; data.valorAnterior = F.Timestamp.fromDate(ev.ts); }
-    if (admin) Object.assign(data, { estado: 'aprobada', resueltoPor: S.user.uid, resueltoTs: F.serverTimestamp(), respuesta: 'Corrección directa del administrador' });
-    else data.estado = 'pendiente';
+    if (!ops.length) return err.textContent = 'No has cambiado nada.';
+    const b = F.writeBatch(db);
+    for (const o of ops) {
+      const data = { uid: usuario.id, dia, mes: dia.slice(0, 7), accion: o.accion, motivo: mot, autorUid: S.user.uid, creadoTs: F.serverTimestamp() };
+      if (o.nt) data.nuevoTs = F.Timestamp.fromDate(o.nt);
+      if (o.ev) { data.fichajeId = o.ev.id; data.tipo = o.ev.tipo; data.valorAnterior = F.Timestamp.fromDate(o.ev.ts); } else data.tipo = o.tipo;
+      if (admin) Object.assign(data, { estado: 'aprobada', resueltoPor: S.user.uid, resueltoTs: F.serverTimestamp(), respuesta: 'Corrección directa del administrador' });
+      else data.estado = 'pendiente';
+      b.set(F.doc(col('correcciones')), data);
+    }
     try {
-      await F.addDoc(col('correcciones'), data);
-      audit(admin ? 'correccion_aplicada' : 'correccion_solicitada', `${nombreDe(usuario)} · ${diaFmt(dia)} · ${acc} ${TIPOS[data.tipo] || ''}${data.nuevoTs ? ' ' + fechaHora(data.nuevoTs.toDate()) : ''} · ${mot}`, { uidAfectado: usuario.id });
-      m.close(); toast(admin ? 'Corrección aplicada' : 'Solicitud enviada', 'ok'); onDone && onDone();
+      await b.commit();
+      const desc = ops.map(o => `${{ anadir: 'añade', modificar: 'cambia', anular: 'anula' }[o.accion]} ${TIPOS[o.tipo || o.ev.tipo]}${o.ev ? ' ' + hora(o.ev.ts) : ''}${o.nt ? ' → ' + hora(o.nt) : ''}`).join(', ');
+      audit(admin ? 'correccion_aplicada' : 'correccion_solicitada', `${nombreDe(usuario)} · ${diaFmt(dia)} · ${desc} · ${mot}`, { uidAfectado: usuario.id });
+      m.close(); toast(admin ? 'Jornada corregida' : 'Solicitud enviada', 'ok'); onDone && onDone();
     } catch (e) { err.textContent = errMsg(e); }
   };
+}
+function elegirDia(mes, cb) {
+  const ini = `${mes}-01`, fin = diasDelMes(mes).at(-1), hoy = diaHoy();
+  const m = modal(`<h2>¿Qué día?</h2><label>Fecha de la jornada</label><input type="date" id="ed-d" min="${ini}" max="${fin < hoy ? fin : hoy}" value="${hoy.startsWith(mes) ? hoy : fin}">
+    <div class="acts"><button class="btn" data-close>Cancelar</button><button class="btn pri" id="ed-go">Continuar</button></div>`);
+  $('#ed-go', m).onclick = () => { const d = $('#ed-d', m).value; if (!d) return; m.close(); cb(d); };
 }
 
 /* ================= EMPLEADO: historial ================= */
@@ -868,10 +949,10 @@ RUTAS['historial'] = async el => {
     ${pend.length ? `<div class="card" style="margin-top:12px"><h3>Solicitudes pendientes</h3>${pend.map(c => `<div class="sub">${diaFmt(c.dia)} · ${c.accion === 'anadir' ? 'Añadir' : c.accion === 'anular' ? 'Anular' : 'Cambiar'} ${TIPOS[c.tipo] || ''} ${c.nuevoTs ? hora(toDate(c.nuevoTs)) : ''}</div>`).join('')}</div>` : ''}
     <div class="row between" style="margin-top:16px"><h2 style="margin:0">Días</h2><button class="btn sm" id="b-pdf">Descargar PDF</button></div>
     <div class="card" id="dias">${htmlDias(u, res)}</div>
-    <button class="btn block" id="b-nuevo">Solicitar fichaje de otro día</button>`;
+    <button class="btn block" id="b-nuevo">Corregir un día sin fichajes</button>`;
   nm.bind(el);
   bindDias(el, u, d, () => route(), false);
-  $('#b-nuevo').onclick = () => { const dd = prompt('Fecha de la jornada (AAAA-MM-DD)', diaHoy()); if (dd && /^\d{4}-\d{2}-\d{2}$/.test(dd)) modalCorreccion(u, dd, d.jornadas.get(dd), false, () => route()); };
+  $('#b-nuevo').onclick = () => elegirDia(mesSel, dd => modalCorreccion(u, dd, d.jornadas.get(dd), false, () => route(), d.turnos.filter(t => t.fecha === dd)));
   $('#b-pdf').onclick = () => imprimir([{ usuario: u, mes: mesSel, res, cierre }]);
   const bf = $('#b-firmar'); if (bf) bf.onclick = () => firmarCierre(cierre, res);
 };
@@ -1121,15 +1202,16 @@ RUTAS['admin/turnos'] = async el => {
   ts.forEach(t => { const k = key(t.uid, t.fecha); if (!mapa.has(k)) mapa.set(k, []); mapa.get(k).push(t); });
   el.innerHTML = `<div class="row between wrap"><h1>Turnos</h1><div class="row"><button class="btn sm" id="w-prev">‹</button><b>${diaFmt(dias[0]).slice(0, 5)} – ${diaFmt(dias[6])}</b><button class="btn sm" id="w-next">›</button></div></div>
     <div class="row wrap" style="margin:10px 0"><select id="w-c" style="max-width:260px"><option value="">Todos los centros</option>${S.centros.filter(c => !c.eliminado).map(c => `<option value="${c.id}" ${c.id === centroFiltro ? 'selected' : ''}>${esc(c.nombre)}</option>`).join('')}</select>
-    <button class="btn sm" id="w-copy">Copiar semana anterior</button><button class="btn sm" id="w-hoy">Hoy</button></div>
-    <p class="sub" style="margin-bottom:10px">Pulsa una casilla para asignar o quitar turnos. Los empleados lo ven al momento en "Horario".</p>
+    <button class="btn pri sm" id="w-asig">Asignar horario</button><a class="btn sm" href="#/admin/horarios">Horarios</a><button class="btn sm" id="w-copy">Copiar semana anterior</button><button class="btn sm" id="w-hoy">Hoy</button></div>
+    <p class="sub" style="margin-bottom:10px">Pulsa una casilla para poner o quitar un turno suelto. Los empleados lo ven al momento en su pestaña "Horario".</p>
     <div class="tw"><div class="wk"><div class="h"></div>${dias.map(d => `<div class="h ${d === hoy ? 'today' : ''}">${diaCorto(d)}</div>`).join('')}
-    ${emps.map(u => `<div class="n">${esc(u.nombre)} ${esc((u.apellidos || '').split(' ')[0])}</div>${dias.map(d => { const a = ausenciaEn(aus, u.id, d); const tt = (mapa.get(key(u.id, d)) || []).sort((x, y) => x.inicio.localeCompare(y.inicio)); return `<div class="c" data-u="${u.id}" data-d="${d}">${a ? `<div class="ab">${esc(AUSENCIAS[a.tipo])}</div>` : ''}${tt.map(t => `<div class="sh">${t.inicio}–${t.fin}<small>${esc(centroById(t.centroId)?.nombre || '')}</small></div>`).join('')}</div>`; }).join('')}`).join('')}
+    ${emps.map(u => `<div class="n">${esc(u.nombre)} ${esc((u.apellidos || '').split(' ')[0])}</div>${dias.map(d => { const a = ausenciaEn(aus, u.id, d); const tt = (mapa.get(key(u.id, d)) || []).sort((x, y) => x.inicio.localeCompare(y.inicio)); return `<div class="c" data-u="${u.id}" data-d="${d}">${a ? `<div class="ab">${esc(AUSENCIAS[a.tipo])}</div>` : ''}${tt.map(t => `<div class="sh" style="${t.color ? `border-color:${t.color};background:${t.color}26` : ''}">${t.inicio}–${t.fin}<small>${esc(t.horarioNombre || centroById(t.centroId)?.nombre || '')}</small></div>`).join('')}</div>`; }).join('')}`).join('')}
     </div></div>${emps.length ? '' : '<div class="empty">No hay empleados activos.</div>'}
     <p class="sub" style="margin-top:10px">Total previsto semana: <b>${dur(ts.filter(t => emps.some(u => u.id === t.uid)).reduce((s, t) => s + turnoMin(t), 0) * 60000)}</b></p>`;
   $('#w-prev').onclick = () => { semSel = addDays(semSel, -7); route(); };
   $('#w-next').onclick = () => { semSel = addDays(semSel, 7); route(); };
   $('#w-hoy').onclick = () => { semSel = lunesDe(diaHoy()); route(); };
+  $('#w-asig').onclick = () => horarios().length ? modalAsignar(null) : (toast('Primero crea un horario'), location.hash = '#/admin/horarios');
   $('#w-c').onchange = e => { centroFiltro = e.target.value; route(); };
   $('#w-copy').onclick = async () => {
     const prev = dias.map(d => addDays(d, -7)); const pts = await qIn('turnos', 'fecha', prev);
@@ -1137,7 +1219,7 @@ RUTAS['admin/turnos'] = async el => {
     if (!nuevos.length) return toast('No hay turnos nuevos que copiar');
     if (!(await confirmar('Copiar semana anterior', `Se crearán ${nuevos.length} turnos en esta semana.`))) return;
     const b = F.writeBatch(db);
-    nuevos.forEach(t => { const f = addDays(t.fecha, 7); b.set(F.doc(col('turnos')), { uid: t.uid, fecha: f, mes: f.slice(0, 7), inicio: t.inicio, fin: t.fin, centroId: t.centroId || null, notas: t.notas || '', creadoPor: S.user.uid, creadoTs: F.serverTimestamp() }); });
+    nuevos.forEach(t => { const f = addDays(t.fecha, 7); b.set(F.doc(col('turnos')), { uid: t.uid, fecha: f, mes: f.slice(0, 7), inicio: t.inicio, fin: t.fin, centroId: t.centroId || null, notas: t.notas || '', ...(t.horarioId ? { horarioId: t.horarioId, horarioNombre: t.horarioNombre, color: t.color } : {}), creadoPor: S.user.uid, creadoTs: F.serverTimestamp() }); });
     await b.commit(); audit('turnos_copiados', `${nuevos.length} turnos a semana ${diaFmt(semSel)}`); toast('Turnos copiados', 'ok'); route();
   };
   $$('.wk .c', el).forEach(c => c.onclick = () => modalTurno(userById(c.dataset.u), c.dataset.d, mapa.get(key(c.dataset.u, c.dataset.d)) || [], dias));
@@ -1146,19 +1228,138 @@ function modalTurno(u, dia, existentes, semana) {
   const m = modal(`<h2>${esc(nombreDe(u))}</h2><p class="sub">${diaCorto(dia)}</p>
     ${existentes.length ? `<div class="card list" style="margin-top:10px">${existentes.map(t => `<div class="it"><div class="grow"><div class="t1">${t.inicio} – ${t.fin}</div><div class="t2">${esc(centroById(t.centroId)?.nombre || '')} ${esc(t.notas || '')}</div></div><button class="btn danger sm" data-del="${t.id}">Quitar</button></div>`).join('')}</div>` : ''}
     <h3 style="margin-top:12px">Añadir turno</h3>
+    ${horarios().some(h => h.dias[dowNum(dia)]) ? `<label>Desde un horario</label><select id="t-h"><option value="">— Horas a mano —</option>${horarios().filter(h => h.dias[dowNum(dia)]).map(h => `<option value="${h.id}">${esc(h.nombre)} (${h.dias[dowNum(dia)].map(r => r.i + '–' + r.f).join(' y ')})</option>`).join('')}</select>` : ''}
     <div class="grid2"><div><label>Inicio</label><input type="time" id="t-i" value="09:00"></div><div><label>Fin</label><input type="time" id="t-f" value="14:00"></div></div>
     <label>Centro</label><select id="t-c">${S.centros.filter(c => c.activo !== false && !c.eliminado).map(c => `<option value="${c.id}" ${c.id === (centroFiltro || u.centroId) ? 'selected' : ''}>${esc(c.nombre)}</option>`).join('')}<option value="">—</option></select>
     <label>Notas</label><input id="t-n" placeholder="Ej.: puerta norte">
     <label style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" id="t-rep"> Repetir de lunes a viernes de esta semana</label>
     <p class="sub" style="font-size:12px;margin-top:6px">Si el fin es anterior al inicio, se entiende que termina al día siguiente.</p>
     <div class="acts"><button class="btn" data-close>Cerrar</button><button class="btn pri" id="t-ok">Añadir</button></div>`);
+  const th = $('#t-h', m); if (th) th.onchange = () => { const h = horarios().find(x => x.id === th.value); const r = h?.dias[dowNum(dia)]?.[0]; if (r) { $('#t-i', m).value = r.i; $('#t-f', m).value = r.f; } };
   $$('[data-del]', m).forEach(b => b.onclick = async () => { await F.deleteDoc(F.doc(db, 'turnos', b.dataset.del)); audit('turno_eliminado', `${nombreDe(u)} ${diaFmt(dia)}`, { uidAfectado: u.id }); m.close(); route(); });
   $('#t-ok', m).onclick = async () => {
     const ini = $('#t-i', m).value, fin = $('#t-f', m).value; if (!ini || !fin) return;
     const fechas = $('#t-rep', m).checked ? semana.slice(0, 5) : [dia];
     const b = F.writeBatch(db);
-    fechas.forEach(f => b.set(F.doc(col('turnos')), { uid: u.id, fecha: f, mes: f.slice(0, 7), inicio: ini, fin, centroId: $('#t-c', m).value || null, notas: $('#t-n', m).value.trim(), creadoPor: S.user.uid, creadoTs: F.serverTimestamp() }));
+    const hs = th?.value ? horarios().find(x => x.id === th.value) : null;
+    fechas.forEach(f => {
+      const rangos = hs && hs.dias[dowNum(f)] ? hs.dias[dowNum(f)] : [{ i: ini, f: fin }];
+      rangos.forEach(r => b.set(F.doc(col('turnos')), { uid: u.id, fecha: f, mes: f.slice(0, 7), inicio: hs ? r.i : ini, fin: hs ? r.f : fin, centroId: $('#t-c', m).value || null, notas: $('#t-n', m).value.trim(), ...(hs ? { horarioId: hs.id, horarioNombre: hs.nombre, color: hs.color } : {}), creadoPor: S.user.uid, creadoTs: F.serverTimestamp() }));
+    });
     try { await b.commit(); audit('turno_asignado', `${nombreDe(u)} · ${fechas.map(diaFmt).join(', ')} ${ini}–${fin}`, { uidAfectado: u.id }); m.close(); route(); } catch (e) { toast(errMsg(e), 'err'); }
+  };
+}
+
+/* ================= ADMIN: horarios (plantillas) ================= */
+const horarios = () => S.empresa.horarios || [];
+const minRango = r => r?.i && r?.f ? turnoMin({ inicio: r.i, fin: r.f }) : 0;
+function resumenHorario(h) {
+  const g = []; // agrupa días consecutivos con el mismo horario: "L–V 08:00–15:00 · S 09:00–13:00"
+  for (let d = 1; d <= 7; d++) {
+    const t = (h.dias?.[d] || []).map(r => `${r.i}–${r.f}`).join(' y ');
+    if (!t) continue; const ult = g.at(-1);
+    if (ult && ult.t === t && ult.hasta === d - 1) ult.hasta = d; else g.push({ desde: d, hasta: d, t });
+  }
+  const L = ['', 'L', 'M', 'X', 'J', 'V', 'S', 'D'];
+  return g.map(x => `${L[x.desde]}${x.hasta > x.desde ? '–' + L[x.hasta] : ''} ${x.t}`).join(' · ') || 'Sin días';
+}
+const horasSemana = h => Object.values(h.dias || {}).flat().reduce((s, r) => s + minRango(r), 0);
+async function guardarHorarios(lista, accion, det) {
+  await F.updateDoc(F.doc(db, 'config', 'empresa'), { horarios: lista });
+  S.empresa.horarios = lista; audit(accion, det);
+}
+RUTAS['admin/horarios'] = async el => {
+  await cargarUsuarios();
+  const hs = horarios();
+  el.innerHTML = `<div class="row between"><h1>Horarios</h1><button class="btn pri sm" id="h-new">+ Nuevo</button></div>
+    <p class="sub">Crea horarios tipo (mañana, tarde, partido…) y asígnalos a los empleados para un periodo. Cada empleado los ve en su pestaña "Horario".</p>
+    <div class="card list" style="margin-top:12px">${hs.map(h => `<div class="it"><div class="grow clickable" data-ed="${h.id}"><div class="t1"><span class="hz" style="background:${h.color}"></span>${esc(h.nombre)}</div><div class="t2">${esc(resumenHorario(h))} · ${dur(horasSemana(h) * 60000)}/semana</div></div><button class="btn pri sm" data-as="${h.id}">Asignar</button></div>`).join('') || '<div class="empty">Aún no hay horarios. Crea el primero, por ejemplo "Mañana L–V 08:00–15:00".</div>'}</div>
+    <p class="note">Asignar un horario crea los turnos de cada día en el cuadrante. Después puedes retocar cualquier día suelto desde "Turnos".</p>`;
+  $('#h-new').onclick = () => modalHorario(null);
+  $$('[data-ed]', el).forEach(x => x.onclick = () => modalHorario(hs.find(h => h.id === x.dataset.ed)));
+  $$('[data-as]', el).forEach(x => x.onclick = () => modalAsignar(hs.find(h => h.id === x.dataset.as)));
+};
+function modalHorario(h) {
+  const nuevo = !h; h = h ? JSON.parse(JSON.stringify(h)) : { id: 'h' + Date.now().toString(36), nombre: '', color: COLORES[horarios().length % COLORES.length], dias: {} };
+  const partida = Object.values(h.dias).some(r => r.length > 1);
+  const fila = d => { const r = h.dias[d] || []; return `<div class="hd-row ${r.length ? '' : 'off'}" data-d="${d}"><label class="chk" style="margin:0"><input type="checkbox" ${r.length ? 'checked' : ''}> ${DIAS_SEM[d].slice(0, 3)}</label>
+    <input type="time" data-k="i1" value="${r[0]?.i || ''}"><input type="time" data-k="f1" value="${r[0]?.f || ''}">
+    <div class="p2 ${partida ? '' : 'hidden'}"><input type="time" data-k="i2" value="${r[1]?.i || ''}"><input type="time" data-k="f2" value="${r[1]?.f || ''}"></div></div>`; };
+  const m = modal(`<h2>${nuevo ? 'Nuevo horario' : 'Editar horario'}</h2>
+    <label>Nombre</label><input id="h-n" value="${esc(h.nombre)}" placeholder="Ej.: Mañana, Tarde, Feria noche…">
+    <label>Color</label><div class="sw">${COLORES.map(c => `<button type="button" data-c="${c}" style="background:${c}" class="${c === h.color ? 'on' : ''}"></button>`).join('')}</div>
+    <div class="row between" style="margin-top:16px"><b style="font-size:13px">Días y horas</b><label class="chk" style="margin:0;font-size:13px"><input type="checkbox" id="h-part" ${partida ? 'checked' : ''}> Jornada partida</label></div>
+    <div id="h-dias">${[1, 2, 3, 4, 5, 6, 7].map(fila).join('')}</div>
+    <button type="button" class="btn sm" id="h-copy" style="margin-top:10px">Copiar el lunes al resto de días marcados</button>
+    <p class="sub" style="font-size:12px;margin-top:8px">Si la hora de fin es anterior a la de inicio, termina al día siguiente (turnos de noche).</p>
+    <div class="err-box" id="h-err"></div>
+    <div class="acts"><button class="btn" data-close>Cancelar</button><button class="btn pri" id="h-ok">Guardar</button></div>
+    ${nuevo ? '' : '<hr><button class="btn danger block" id="h-del">Eliminar horario</button>'}`);
+  let color = h.color;
+  $$('.sw button', m).forEach(b => b.onclick = () => { color = b.dataset.c; $$('.sw button', m).forEach(x => x.classList.toggle('on', x === b)); });
+  $('#h-part', m).onchange = e => $$('.p2', m).forEach(x => x.classList.toggle('hidden', !e.target.checked));
+  $$('.hd-row', m).forEach(r => { const cb = $('input[type=checkbox]', r); cb.onchange = () => { r.classList.toggle('off', !cb.checked); if (cb.checked && !$('[data-k=i1]', r).value) { const l = $('.hd-row[data-d="1"]', m); ['i1', 'f1', 'i2', 'f2'].forEach(k => $(`[data-k=${k}]`, r).value = $(`[data-k=${k}]`, l).value || (k === 'i1' ? '09:00' : k === 'f1' ? '14:00' : '')); } };
+    $$('input[type=time]', r).forEach(i => i.oninput = () => { if (!cb.checked) { cb.checked = true; r.classList.remove('off'); } }); });
+  $('#h-copy', m).onclick = () => { const l = $('.hd-row[data-d="1"]', m); $$('.hd-row', m).forEach(r => { if (r.dataset.d !== '1' && $('input[type=checkbox]', r).checked) ['i1', 'f1', 'i2', 'f2'].forEach(k => $(`[data-k=${k}]`, r).value = $(`[data-k=${k}]`, l).value); }); };
+  $('#h-ok', m).onclick = async () => {
+    const err = $('#h-err', m); const nombre = $('#h-n', m).value.trim(); if (!nombre) return err.textContent = 'Ponle un nombre.';
+    const part = $('#h-part', m).checked, dias = {};
+    for (const r of $$('.hd-row', m)) {
+      if (!$('input[type=checkbox]', r).checked) continue;
+      const v = k => $(`[data-k=${k}]`, r).value; const rr = [];
+      if (v('i1') && v('f1')) rr.push({ i: v('i1'), f: v('f1') }); else return err.textContent = `${DIAS_SEM[r.dataset.d]}: indica hora de inicio y fin.`;
+      if (part && v('i2') && v('f2')) rr.push({ i: v('i2'), f: v('f2') });
+      dias[r.dataset.d] = rr;
+    }
+    if (!Object.keys(dias).length) return err.textContent = 'Marca al menos un día.';
+    const obj = { id: h.id, nombre, color, dias }; const lista = horarios().filter(x => x.id !== h.id).concat(obj);
+    try { await guardarHorarios(lista, nuevo ? 'horario_creado' : 'horario_editado', `${nombre}: ${resumenHorario(obj)}`); m.close(); toast('Horario guardado', 'ok'); route(); }
+    catch (e) { err.textContent = errMsg(e); }
+  };
+  const del = $('#h-del', m); if (del) del.onclick = async () => {
+    if (!(await confirmar('Eliminar horario', `Se borra la plantilla "${esc(h.nombre)}". Los turnos ya asignados con ella se mantienen en el cuadrante.`, { ok: 'Eliminar', danger: true }))) return;
+    try { await guardarHorarios(horarios().filter(x => x.id !== h.id), 'horario_eliminado', h.nombre); m.close(); toast('Horario eliminado', 'ok'); route(); } catch (e) { toast(errMsg(e), 'err'); }
+  };
+}
+function modalAsignar(h, preUids = []) {
+  const emps = S.usuarios.filter(u => u.activo); const hoy = diaHoy();
+  const finMes = diasDelMes(addMonths(hoy.slice(0, 7), 1)).at(-1);
+  const m = modal(`<h2>Asignar horario</h2>
+    <label>Horario</label><select id="a-h">${horarios().map(x => `<option value="${x.id}" ${x.id === h?.id ? 'selected' : ''}>${esc(x.nombre)} · ${esc(resumenHorario(x))}</option>`).join('')}</select>
+    <div class="row between" style="margin-top:12px"><label style="margin:0">Empleados</label><a href="#" id="a-all" style="font-size:12px;font-weight:700">Marcar todos</a></div>
+    <div class="ck-list" style="margin-top:6px">${emps.map(u => `<label class="chk"><input type="checkbox" value="${u.id}" ${preUids.includes(u.id) ? 'checked' : ''}> ${esc(nombreDe(u))} <span class="sub" style="margin-left:auto">${esc(centroById(u.centroId)?.nombre || '')}</span></label>`).join('')}</div>
+    <label>Centro de trabajo</label><select id="a-c"><option value="">El centro habitual de cada empleado</option>${S.centros.filter(c => c.activo !== false && !c.eliminado).map(c => `<option value="${c.id}">${esc(c.nombre)}</option>`).join('')}</select>
+    <div class="grid2"><div><label>Desde</label><input type="date" id="a-d" value="${hoy}"></div><div><label>Hasta</label><input type="date" id="a-hs" value="${finMes}"></div></div>
+    <label class="chk" style="margin-top:14px"><input type="checkbox" id="a-rep" checked> Sustituir los turnos que ya tengan en esas fechas</label>
+    <p class="note" id="a-res"></p><div class="err-box" id="a-err"></div>
+    <div class="acts"><button class="btn" data-close>Cancelar</button><button class="btn pri" id="a-ok">Asignar</button></div>`);
+  const calc = () => {
+    const hh = horarios().find(x => x.id === $('#a-h', m).value), n = $$('.ck-list input:checked', m).length, d1 = $('#a-d', m).value, d2 = $('#a-hs', m).value;
+    if (!hh || !d1 || !d2 || d2 < d1) return $('#a-res', m).textContent = 'Revisa las fechas.';
+    let dias = 0; for (let d = d1; d <= d2; d = addDays(d, 1)) if (hh.dias[dowNum(d)]) dias++;
+    $('#a-res', m).textContent = `${n} empleado(s) × ${dias} día(s) de trabajo. Lo verán al momento en su pestaña "Horario".`;
+  };
+  $$('select, input', m).forEach(i => i.onchange = calc); calc();
+  $('#a-all', m).onclick = e => { e.preventDefault(); const all = $$('.ck-list input', m); const v = !all.every(x => x.checked); all.forEach(x => x.checked = v); calc(); };
+  $('#a-ok', m).onclick = async () => {
+    const err = $('#a-err', m); const hh = horarios().find(x => x.id === $('#a-h', m).value);
+    const uids = $$('.ck-list input:checked', m).map(x => x.value); const d1 = $('#a-d', m).value, d2 = $('#a-hs', m).value;
+    if (!hh) return err.textContent = 'Elige un horario.'; if (!uids.length) return err.textContent = 'Marca al menos un empleado.';
+    if (!d1 || !d2 || d2 < d1) return err.textContent = 'Revisa las fechas.';
+    const fechas = []; for (let d = d1; d <= d2; d = addDays(d, 1)) fechas.push(d);
+    if (fechas.length > 186) return err.textContent = 'Máximo 6 meses por asignación.';
+    const btn = $('#a-ok', m); btn.disabled = true; btn.textContent = 'Asignando…';
+    try {
+      const ops = [];
+      if ($('#a-rep', m).checked) { const exist = await qIn('turnos', 'fecha', fechas); exist.filter(t => uids.includes(t.uid)).forEach(t => ops.push(['del', t.id])); }
+      const centroSel = $('#a-c', m).value;
+      for (const uid of uids) for (const f of fechas) for (const r of (hh.dias[dowNum(f)] || []))
+        ops.push(['set', { uid, fecha: f, mes: f.slice(0, 7), inicio: r.i, fin: r.f, centroId: centroSel || userById(uid)?.centroId || null, notas: '', horarioId: hh.id, horarioNombre: hh.nombre, color: hh.color, creadoPor: S.user.uid, creadoTs: F.serverTimestamp() }]);
+      for (const parte of chunk(ops, 450)) { const b = F.writeBatch(db); parte.forEach(([t, x]) => t === 'del' ? b.delete(F.doc(db, 'turnos', x)) : b.set(F.doc(col('turnos')), x)); await b.commit(); }
+      const n = ops.filter(o => o[0] === 'set').length;
+      audit('horario_asignado', `${hh.nombre} a ${uids.map(u => nombreDe(userById(u))).join(', ')} · ${diaFmt(d1)}–${diaFmt(d2)} · ${n} turnos`);
+      m.close(); toast(`Horario asignado: ${n} turnos creados`, 'ok'); semSel = lunesDe(d1); location.hash = '#/admin/turnos'; route();
+    } catch (e) { err.textContent = errMsg(e); btn.disabled = false; btn.textContent = 'Asignar'; }
   };
 }
 
@@ -1166,10 +1367,11 @@ function modalTurno(u, dia, existentes, semana) {
 RUTAS['admin/solicitudes'] = async el => {
   await cargarUsuarios();
   const [cor, aus] = await Promise.all([q('correcciones', W('estado', '==', 'pendiente')), q('ausencias', W('estado', '==', 'pendiente'))]);
-  S.pendientes = cor.length + aus.length;
+  const grupos = [...groupBy(cor.map(c => ({ ...c, g: `${c.uid}|${c.dia}|${c.motivo}|${c.autorUid}` })), 'g').values()].map(g => g.sort((a, b) => ['entrada', 'pausa_inicio', 'pausa_fin', 'salida'].indexOf(a.tipo) - ['entrada', 'pausa_inicio', 'pausa_fin', 'salida'].indexOf(b.tipo)));
+  S.pendientes = grupos.length + aus.length;
   const accTxt = c => `${{ anadir: 'Añadir', modificar: 'Cambiar', anular: 'Anular' }[c.accion]} ${TIPOS[c.tipo] || ''}${c.valorAnterior ? ` de ${hora(toDate(c.valorAnterior))}` : ''}${c.nuevoTs ? ` ${c.accion === 'modificar' ? 'a' : 'a las'} ${fechaHora(toDate(c.nuevoTs))}` : ''}`;
   el.innerHTML = `<h1>Solicitudes</h1>
-    <h2>Correcciones de fichaje (${cor.length})</h2><div class="card list">${cor.map(c => `<div class="it"><div class="av">${esc(iniciales(userById(c.uid)))}</div><div class="grow"><div class="t1">${esc(nombreDe(userById(c.uid)))} · ${diaCorto(c.dia)}</div><div class="t2">${esc(accTxt(c))}<br>“${esc(c.motivo)}”</div></div><div class="row" style="flex-direction:column;gap:6px"><button class="btn ok sm" data-ok-c="${c.id}">Aprobar</button><button class="btn danger sm" data-no-c="${c.id}">Rechazar</button></div></div>`).join('') || '<div class="empty">Nada pendiente</div>'}</div>
+    <h2>Correcciones de jornada (${grupos.length})</h2><div class="card list">${grupos.map((g, i) => `<div class="it" style="align-items:flex-start"><div class="av">${esc(iniciales(userById(g[0].uid)))}</div><div class="grow"><div class="t1">${esc(nombreDe(userById(g[0].uid)))} · ${diaCorto(g[0].dia)}</div><div class="t2">${g.map(c => '• ' + esc(accTxt(c))).join('<br>')}<br>“${esc(g[0].motivo)}”</div></div><div class="row" style="flex-direction:column;gap:6px"><button class="btn ok sm" data-ok-g="${i}">Aprobar</button><button class="btn danger sm" data-no-g="${i}">Rechazar</button></div></div>`).join('') || '<div class="empty">Nada pendiente</div>'}</div>
     <h2>Ausencias (${aus.length})</h2><div class="card list">${aus.map(a => `<div class="it"><div class="av">${esc(iniciales(userById(a.uid)))}</div><div class="grow"><div class="t1">${esc(nombreDe(userById(a.uid)))}</div><div class="t2">${esc(AUSENCIAS[a.tipo])} · ${diaFmt(a.desde)} → ${diaFmt(a.hasta)}${a.motivo ? `<br>“${esc(a.motivo)}”` : ''}</div></div><div class="row" style="flex-direction:column;gap:6px"><button class="btn ok sm" data-ok-a="${a.id}">Aprobar</button><button class="btn danger sm" data-no-a="${a.id}">Rechazar</button></div></div>`).join('') || '<div class="empty">Nada pendiente</div>'}</div>
     <button class="btn block" id="b-aus">Registrar ausencia</button>`;
   const resolver = async (colName, id, estado, item) => {
@@ -1181,8 +1383,19 @@ RUTAS['admin/solicitudes'] = async el => {
       toast(estado === 'aprobada' ? 'Aprobada' : 'Rechazada', 'ok'); route();
     } catch (e) { toast(errMsg(e), 'err'); }
   };
-  $$('[data-ok-c]', el).forEach(b => b.onclick = () => resolver('correcciones', b.dataset.okC, 'aprobada', cor.find(c => c.id === b.dataset.okC)));
-  $$('[data-no-c]', el).forEach(b => b.onclick = () => resolver('correcciones', b.dataset.noC, 'rechazada', cor.find(c => c.id === b.dataset.noC)));
+  const resolverGrupo = async (g, estado) => {
+    let respuesta = '';
+    if (estado === 'rechazada') { respuesta = prompt('Motivo del rechazo (se le mostrará al empleado):') ?? null; if (respuesta === null) return; }
+    try {
+      const b = F.writeBatch(db);
+      g.forEach(c => b.update(F.doc(db, 'correcciones', c.id), { estado, resueltoPor: S.user.uid, resueltoTs: F.serverTimestamp(), respuesta: respuesta || '' }));
+      await b.commit();
+      audit(`correccion_${estado}`, `${nombreDe(userById(g[0].uid))} · ${diaFmt(g[0].dia)} · ${g.map(accTxt).join(', ')} · ${g[0].motivo}${respuesta ? ' · ' + respuesta : ''}`, { uidAfectado: g[0].uid });
+      toast(estado === 'aprobada' ? 'Corrección aprobada' : 'Corrección rechazada', 'ok'); contarPendientes(); route();
+    } catch (e) { toast(errMsg(e), 'err'); }
+  };
+  $$('[data-ok-g]', el).forEach(b => b.onclick = () => resolverGrupo(grupos[+b.dataset.okG], 'aprobada'));
+  $$('[data-no-g]', el).forEach(b => b.onclick = () => resolverGrupo(grupos[+b.dataset.noG], 'rechazada'));
   $$('[data-ok-a]', el).forEach(b => b.onclick = () => resolver('ausencias', b.dataset.okA, 'aprobada', aus.find(c => c.id === b.dataset.okA)));
   $$('[data-no-a]', el).forEach(b => b.onclick = () => resolver('ausencias', b.dataset.noA, 'rechazada', aus.find(c => c.id === b.dataset.noA)));
   $('#b-aus').onclick = () => modalAusencia(null, true);
@@ -1201,14 +1414,14 @@ RUTAS['admin/registros'] = async el => {
     <select id="r-u" style="margin:8px 0 10px">${S.usuarios.map(x => `<option value="${x.id}" ${x.id === u.id ? 'selected' : ''}>${esc(nombreDe(x))}${x.activo ? '' : ' (baja)'}</option>`).join('')}</select>
     ${nm.html}
     <div class="grid3"><div class="stat"><div class="v">${dur(res.tot)}</div><div class="l">Trabajadas</div></div><div class="stat"><div class="v">${dur(res.extra)}</div><div class="l">Extra</div></div><div class="stat"><div class="v" style="${res.incid ? 'color:var(--coral)' : ''}">${res.incid}</div><div class="l">Incidencias</div></div></div>
-    <div class="row wrap" style="margin:12px 0"><button class="btn sm" id="r-pdf">Informe PDF</button><button class="btn sm" id="r-add">Añadir fichaje a otro día</button><button class="btn sm" id="r-cierre">${cierre ? 'Nuevo cierre' : 'Cerrar mes'}</button></div>
+    <div class="row wrap" style="margin:12px 0"><button class="btn sm" id="r-pdf">Informe PDF</button><button class="btn sm" id="r-add">Editar otro día</button><button class="btn sm" id="r-cierre">${cierre ? 'Nuevo cierre' : 'Cerrar mes'}</button></div>
     ${cierre ? `<p class="sub">Último cierre: ${fechaHora(toDate(cierre.creadoTs))} · ${cierre.firmadoTs ? `firmado ${fechaHora(toDate(cierre.firmadoTs))} (${cierre.firmaConforme ? 'conforme' : 'no conforme'}${cierre.firmaComentario ? ': ' + esc(cierre.firmaComentario) : ''})` : 'pendiente de firma'}</p>` : ''}
     <div class="card" id="dias">${htmlDias(u, res, { admin: true })}</div>`;
   nm.bind(el);
   $('#r-u').onchange = e => { regSel.uid = e.target.value; route(); };
   bindDias(el, u, d, () => route(), true);
   $('#r-pdf').onclick = () => imprimir([{ usuario: u, mes: mesSel, res, cierre }]);
-  $('#r-add').onclick = () => { const dd = prompt('Fecha de la jornada (AAAA-MM-DD)', diaHoy()); if (dd && /^\d{4}-\d{2}-\d{2}$/.test(dd)) modalCorreccion(u, dd, d.jornadas.get(dd), true, () => route()); };
+  $('#r-add').onclick = () => elegirDia(mesSel, dd => modalCorreccion(u, dd, d.jornadas.get(dd), true, () => route(), d.turnos.filter(t => t.fecha === dd)));
   $('#r-cierre').onclick = () => crearCierre(u, mesSel, res, d.eventos);
 };
 
@@ -1364,6 +1577,7 @@ RUTAS['admin/ajustes'] = async el => {
 RUTAS['admin/mas'] = async el => {
   const it = (h, t, s) => `<a class="it" href="${h}" style="text-decoration:none;color:inherit"><div class="grow"><div class="t1">${t}</div><div class="t2">${s}</div></div><span>›</span></a>`;
   el.innerHTML = `<h1>Más</h1><div class="card list">
+    ${it('#/admin/horarios', 'Horarios', 'Crear horarios tipo y asignarlos a empleados')}
     ${it('#/admin/registros', 'Registros por empleado', 'Ver, corregir y cerrar meses')}
     ${it('#/admin/informes', 'Informes y exportación', 'PDF mensual, CSV para Inspección')}
     ${it('#/admin/centros', 'Centros de trabajo', 'Aparcamientos, recintos y zonas de fichaje')}
