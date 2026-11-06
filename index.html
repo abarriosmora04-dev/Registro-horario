@@ -440,6 +440,9 @@ const iniciales = u => ((u?.nombre || '?')[0] + (u?.apellidos || '')[0] || '').t
 const nombreDe = u => u ? `${u.nombre || ''} ${u.apellidos || ''}`.trim() : 'Desconocido';
 const userById = id => S.usuarios.find(u => u.id === id) || (S.perfil?.id === id ? S.perfil : null);
 const centroById = id => S.centros.find(c => c.id === id);
+// Un empleado puede tener varios centros; centroId es el principal (por defecto en turnos y horarios).
+const centrosDe = u => { const ids = u?.centros?.length ? u.centros : (u?.centroId ? [u.centroId] : []); return ids.filter(id => { const c = centroById(id); return c && !c.eliminado; }); };
+const centrosTxt = (u, vacio = 'Sin centro') => { const n = centrosDe(u).map(id => centroById(id).nombre); return n.length ? n.join(', ') : vacio; };
 const esAdmin = () => S.perfil?.rol === 'admin';
 const jornadaDefMin = u => Math.round(((u?.jornadaDiariaH ?? S.empresa?.jornadaDiariaH ?? 8)) * 60);
 async function sha256(txt) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(txt)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); }
@@ -785,7 +788,7 @@ function shellAdmin(r) {
 function bindBuscador() {
   const inp = $('#a-q'), box = $('#a-res'); if (!inp) return;
   let sel = 0, res = [];
-  const pintar = () => { box.innerHTML = res.map((u, i) => `<a href="#" data-u="${u.id}" class="${i === sel ? 'on' : ''}"><div class="av" style="width:30px;height:30px;font-size:11px">${esc(iniciales(u))}</div>${esc(nombreDe(u))}<span class="sub" style="margin-left:auto">${esc(centroById(u.centroId)?.nombre || '')}</span></a>`).join('') || '<div class="empty" style="padding:12px">Sin resultados</div>'; box.classList.remove('hidden');
+  const pintar = () => { box.innerHTML = res.map((u, i) => `<a href="#" data-u="${u.id}" class="${i === sel ? 'on' : ''}"><div class="av" style="width:30px;height:30px;font-size:11px">${esc(iniciales(u))}</div>${esc(nombreDe(u))}<span class="sub" style="margin-left:auto">${esc(centrosTxt(u, ''))}</span></a>`).join('') || '<div class="empty" style="padding:12px">Sin resultados</div>'; box.classList.remove('hidden');
     $$('[data-u]', box).forEach(a => a.onmousedown = e => { e.preventDefault(); ir(a.dataset.u); }); };
   const ir = uid => { regSel.uid = uid; inp.value = ''; box.classList.add('hidden'); location.hash = '#/admin/registros'; if (location.hash === '#/admin/registros') route(); };
   inp.oninput = () => { const f = inp.value.trim().toLowerCase(); if (!f) return box.classList.add('hidden'); sel = 0; res = S.usuarios.filter(u => `${nombreDe(u)} ${u.dni} ${u.email}`.toLowerCase().includes(f)).slice(0, 7); pintar(); };
@@ -939,7 +942,12 @@ async function fichar(tipo, diaJornada, turno) {
       if (r.error) { geoError = r.error; if (modo === 'obligatoria') { m.close(); return toast('No se pudo obtener tu ubicación. Activa la localización para fichar.', 'err'); } }
       else geo = r;
     }
-    const centroId = turno?.centroId || S.perfil.centroId || null;
+    let centroId = turno?.centroId || null;
+    if (!centroId) { // varios centros: se elige el más cercano a donde ficha
+      const mios = centrosDe(S.perfil).map(centroById).filter(c => c.lat != null && c.lng != null && c.lat !== '');
+      if (geo && mios.length) centroId = mios.map(c => [c.id, haversine(geo, { lat: +c.lat, lng: +c.lng })]).sort((a, b) => a[1] - b[1])[0][0];
+      else centroId = S.perfil.centroId || centrosDe(S.perfil)[0] || null;
+    }
     const c = centroById(centroId);
     if (geo && c?.lat != null && c?.lng != null) {
       distanciaM = Math.round(haversine(geo, { lat: +c.lat, lng: +c.lng }));
@@ -1186,7 +1194,7 @@ RUTAS['perfil'] = async el => {
   el.innerHTML = `<div class="row" style="margin:8px 0 16px"><div class="av" style="width:54px;height:54px;font-size:18px">${esc(iniciales(u))}</div><div><h1 style="margin:0">${esc(nombreDe(u))}</h1><div class="sub">${esc(u.email)}</div></div></div>
     <div class="card list">
       <div class="it"><div class="grow"><div class="t2">DNI/NIE</div><div class="t1">${esc(u.dni || '—')}</div></div></div>
-      <div class="it"><div class="grow"><div class="t2">Centro habitual</div><div class="t1">${esc(c?.nombre || '—')}</div></div></div>
+      <div class="it"><div class="grow"><div class="t2">${centrosDe(u).length > 1 ? 'Centros de trabajo' : 'Centro de trabajo'}</div><div class="t1">${esc(centrosTxt(u, '—'))}</div></div></div>
       <div class="it"><div class="grow"><div class="t2">Contrato · jornada</div><div class="t1">${esc(CONTRATOS[u.contrato] || '—')} · ${u.jornadaDiariaH ?? S.empresa.jornadaDiariaH ?? 8} h/día</div></div></div>
       <div class="it"><div class="grow"><div class="t2">Empresa</div><div class="t1">${esc(S.empresa.nombre)} · ${esc(S.empresa.cif)}</div></div></div>
     </div>
@@ -1257,7 +1265,7 @@ RUTAS['admin/panel'] = async el => {
   const top5 = partes.slice(0, 5); if (partes.length > 5) top5.push({ n: 'Otros', v: partes.slice(5).reduce((s, p) => s + p.v, 0), c: '#cbd2e6' });
   const delta = horasMesAnt ? Math.round((horasMes - horasMesAnt) / horasMesAnt * 100) : null;
   const kpi = (href, ic, v, l, sub, col = '') => `<a class="kpi card" href="${href}" style="margin:0"><div class="ki" style="${col}">${ic}</div><div class="kv2">${v}</div><div class="kl">${l}</div><div class="ks">${sub}</div></a>`;
-  const fila = (x, extra) => `<div class="it clickable" data-u="${x.u.id}"><div class="av">${esc(iniciales(x.u))}</div><div class="grow"><div class="t1">${esc(nombreDe(x.u))}</div><div class="t2">${x.t ? x.t.map(t => `${t.inicio}–${t.fin}`).join(', ') + ' · ' : ''}${esc(centroById(x.t?.[0]?.centroId || x.u.centroId)?.nombre || '')}${x.a ? esc(AUSENCIAS[x.a.tipo]) : ''}</div></div>${extra}</div>`;
+  const fila = (x, extra) => `<div class="it clickable" data-u="${x.u.id}"><div class="av">${esc(iniciales(x.u))}</div><div class="grow"><div class="t1">${esc(nombreDe(x.u))}</div><div class="t2">${x.t ? x.t.map(t => `${t.inicio}–${t.fin}`).join(', ') + ' · ' : ''}${esc(x.t?.[0]?.centroId ? centroById(x.t[0].centroId)?.nombre || '' : centrosTxt(x.u, ''))}${x.a ? esc(AUSENCIAS[x.a.tipo]) : ''}</div></div>${extra}</div>`;
   el.innerHTML = `
     <div class="dash-hd"><div><h1>${saludo()}, ${esc(S.perfil.nombre)}</h1><div class="sub" style="text-transform:capitalize">${new Intl.DateTimeFormat('es-ES', { timeZone: TZ, dateStyle: 'full' }).format(new Date())} · ${activos.length} empleados activos</div></div>
       <div class="row wrap"><a class="btn sm" href="#/admin/auditoria">${IC.shield.replace('<svg', '<svg width="15" height="15"')} Auditoría</a><button class="btn sm" id="d-asig">Asignar horario</button><button class="btn pri sm" id="d-alta">+ Alta empleado</button></div></div>
@@ -1297,7 +1305,7 @@ RUTAS['admin/equipo'] = async el => {
     const f = filtro.toLowerCase();
     const lst = S.usuarios.filter(u => !f || `${nombreDe(u)} ${u.dni} ${u.email}`.toLowerCase().includes(f));
     const act = lst.filter(u => u.activo), baj = lst.filter(u => !u.activo);
-    const it = u => `<div class="it clickable" data-u="${u.id}"><div class="av">${esc(iniciales(u))}</div><div class="grow"><div class="t1">${esc(nombreDe(u))} ${u.rol === 'admin' ? '<span class="tag blue">admin</span>' : ''}</div><div class="t2">${esc(centroById(u.centroId)?.nombre || 'Sin centro')} · ${esc(CONTRATOS[u.contrato] || '')}</div></div>${u.activo ? '' : '<span class="tag">baja</span>'}</div>`;
+    const it = u => `<div class="it clickable" data-u="${u.id}"><div class="av">${esc(iniciales(u))}</div><div class="grow"><div class="t1">${esc(nombreDe(u))} ${u.rol === 'admin' ? '<span class="tag blue">admin</span>' : ''}</div><div class="t2">${esc(centrosTxt(u))} · ${esc(CONTRATOS[u.contrato] || '')}</div></div>${u.activo ? '' : '<span class="tag">baja</span>'}</div>`;
     $('#eq-list').innerHTML = `<h2>Activos (${act.length})</h2><div class="card list">${act.map(it).join('') || '<div class="empty">—</div>'}</div>${baj.length ? `<h2>De baja (${baj.length})</h2><div class="card list">${baj.map(it).join('')}</div>` : ''}`;
     $$('[data-u]', el).forEach(i => i.onclick = () => modalEmpleado(S.usuarios.find(u => u.id === i.dataset.u)));
   };
@@ -1318,8 +1326,9 @@ function modalEmpleado(u) {
     <form id="f-emp"><div class="grid2"><div><label>Nombre</label><input name="nombre" value="${esc(u.nombre)}" required></div><div><label>Apellidos</label><input name="apellidos" value="${esc(u.apellidos)}" required></div></div>
     <div class="grid2"><div><label>DNI/NIE</label><input name="dni" value="${esc(u.dni)}" required></div><div><label>Teléfono</label><input name="telefono" value="${esc(u.telefono)}"></div></div>
     <label>Email (usuario de acceso)</label><input name="email" type="email" value="${esc(u.email)}" ${nuevo ? 'required' : 'disabled'}>
-    <div class="grid2"><div><label>Centro habitual</label><select name="centroId"><option value="">—</option>${S.centros.filter(c => c.activo !== false && !c.eliminado).map(c => `<option value="${c.id}" ${c.id === u.centroId ? 'selected' : ''}>${esc(c.nombre)}</option>`).join('')}</select></div>
-    <div><label>Rol</label><select name="rol"><option value="empleado" ${u.rol === 'empleado' ? 'selected' : ''}>Empleado</option><option value="admin" ${u.rol === 'admin' ? 'selected' : ''}>Administrador</option></select></div></div>
+    <label>Centros de trabajo <span style="font-weight:600">(marca todos en los que trabaja)</span></label>
+    <div class="ck-list" id="e-cen">${S.centros.filter(c => !c.eliminado && (c.activo !== false || centrosDe(u).includes(c.id))).map(c => `<label class="chk"><input type="checkbox" value="${c.id}" ${centrosDe(u).includes(c.id) ? 'checked' : ''}> <span style="flex:1">${esc(c.nombre)}</span><span class="tag blue e-pr ${c.id === (u.centroId || centrosDe(u)[0]) && centrosDe(u).length ? '' : 'hidden'}">principal</span><a href="#" class="e-mk sub hidden" data-c="${c.id}" style="font-size:12px">hacer principal</a></label>`).join('') || '<div class="empty" style="padding:10px">Aún no hay centros. Créalos en Centros.</div>'}</div>
+    <div class="grid2"><div><label>Rol</label><select name="rol"><option value="empleado" ${u.rol === 'empleado' ? 'selected' : ''}>Empleado</option><option value="admin" ${u.rol === 'admin' ? 'selected' : ''}>Administrador</option></select></div></div>
     <div class="grid2"><div><label>Contrato</label><select name="contrato">${Object.entries(CONTRATOS).map(([k, v]) => `<option value="${k}" ${k === u.contrato ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
     <div><label>Jornada diaria (h)</label><input name="jornadaDiariaH" type="number" step="0.25" min="0" max="12" value="${u.jornadaDiariaH ?? 8}"></div></div>
     ${nuevo ? `<label>Fecha de alta</label><input name="alta" type="date" value="${diaHoy()}"><label class="chk" style="margin-top:14px"><input type="checkbox" name="invitar" checked> Enviarle un email para que cree su contraseña</label>` : `<p class="note"><b>Periodos de alta:</b><br>${per || '—'}</p>`}
@@ -1328,9 +1337,20 @@ function modalEmpleado(u) {
     ${nuevo ? '' : `<hr><div class="row wrap">
       ${u.activo ? (u.id !== S.user.uid ? '<button class="btn danger sm" id="e-baja">Dar de baja</button>' : '') : '<button class="btn ok sm" id="e-alta">Reactivar (nueva alta)</button>'}
       <button class="btn sm" id="e-reset">Enviar email de contraseña</button><button class="btn sm" id="e-reg">Ver registros</button></div>`}`);
+  let principal = u.centroId || centrosDe(u)[0] || null;
+  const pintarPr = () => {
+    const marcados = $$('#e-cen input:checked', m).map(x => x.value);
+    if (!marcados.includes(principal)) principal = marcados[0] || null;
+    $$('#e-cen label', m).forEach(l => { const id = $('input', l).value, on = $('input', l).checked;
+      $('.e-pr', l).classList.toggle('hidden', id !== principal); $('.e-mk', l).classList.toggle('hidden', !on || id === principal || marcados.length < 2); });
+  };
+  $$('#e-cen input', m).forEach(i => i.onchange = pintarPr);
+  $$('#e-cen .e-mk', m).forEach(a => a.onclick = e => { e.preventDefault(); e.stopPropagation(); principal = a.dataset.c; pintarPr(); });
+  pintarPr();
   $('#f-emp', m).onsubmit = async e => {
     e.preventDefault(); const f = e.target; const err = $('#e-err', m); const btn = $('button.pri', f); btn.disabled = true;
-    const data = { nombre: f.nombre.value.trim(), apellidos: f.apellidos.value.trim(), dni: f.dni.value.trim().toUpperCase(), telefono: f.telefono.value.trim(), centroId: f.centroId.value || null, rol: f.rol.value, contrato: f.contrato.value, jornadaDiariaH: +f.jornadaDiariaH.value || 0 };
+    const centros = $$('#e-cen input:checked', m).map(x => x.value);
+    const data = { nombre: f.nombre.value.trim(), apellidos: f.apellidos.value.trim(), dni: f.dni.value.trim().toUpperCase(), telefono: f.telefono.value.trim(), centros, centroId: centros.includes(principal) ? principal : (centros[0] || null), rol: f.rol.value, contrato: f.contrato.value, jornadaDiariaH: +f.jornadaDiariaH.value || 0 };
     try {
       if (!nuevo && u.id === S.user.uid && data.rol !== 'admin') throw new Error('No puedes quitarte a ti mismo el rol de administrador.');
       if (nuevo) {
@@ -1378,7 +1398,7 @@ RUTAS['admin/centros'] = async el => {
   await cargarCentros();
   el.innerHTML = `<div class="row between"><h1>Centros de trabajo</h1><button class="btn pri sm" id="b-new">+ Nuevo</button></div>
     <p class="sub">Aparcamientos, recintos feriales o eventos donde se ficha. Con coordenadas, la app marca los fichajes hechos fuera de la zona.</p>
-    <div class="card list" style="margin-top:12px">${S.centros.filter(c => !c.eliminado).map(c => `<div class="it clickable" data-c="${c.id}"><div class="grow"><div class="t1">${esc(c.nombre)}</div><div class="t2">${esc(c.direccion || '')}${c.lat != null && c.lat !== '' ? ` · radio ${c.radioM || S.empresa.radioDefectoM || 300} m` : ' · sin coordenadas'}</div></div>${c.activo === false ? '<span class="tag">inactivo</span>' : '<span class="tag green">activo</span>'}</div>`).join('') || '<div class="empty">Aún no hay centros</div>'}</div>`;
+    <div class="card list" style="margin-top:12px">${S.centros.filter(c => !c.eliminado).map(c => `<div class="it clickable" data-c="${c.id}"><div class="grow"><div class="t1">${esc(c.nombre)}</div><div class="t2">${(n => n ? `${n} empleado${n > 1 ? 's' : ''} · ` : '')(S.usuarios.filter(u => u.activo && centrosDe(u).includes(c.id)).length)}${esc(c.direccion || '')}${c.lat != null && c.lat !== '' ? ` · radio ${c.radioM || S.empresa.radioDefectoM || 300} m` : ' · sin coordenadas'}</div></div>${c.activo === false ? '<span class="tag">inactivo</span>' : '<span class="tag green">activo</span>'}</div>`).join('') || '<div class="empty">Aún no hay centros</div>'}</div>`;
   $('#b-new').onclick = () => modalCentro(null);
   $$('[data-c]', el).forEach(i => i.onclick = () => modalCentro(centroById(i.dataset.c)));
 };
@@ -1397,8 +1417,8 @@ function modalCentro(c) {
     if (!(await confirmar('Eliminar centro', `"${esc(c.nombre)}" desaparecerá de la app y no se podrá asignar a turnos ni empleados. Los fichajes antiguos hechos allí se conservan con su nombre en los informes.`, { ok: 'Eliminar', danger: true }))) return;
     try {
       await F.updateDoc(F.doc(db, 'centros', c.id), { eliminado: true, activo: false, eliminadoTs: F.serverTimestamp() });
-      const afectados = S.usuarios.filter(u => u.centroId === c.id);
-      await Promise.all(afectados.map(u => F.updateDoc(F.doc(db, 'usuarios', u.id), { centroId: null })));
+      const afectados = S.usuarios.filter(u => u.centroId === c.id || (u.centros || []).includes(c.id));
+      await Promise.all(afectados.map(u => { const resto = (u.centros || []).filter(x => x !== c.id); return F.updateDoc(F.doc(db, 'usuarios', u.id), { centros: resto, centroId: u.centroId === c.id ? (resto[0] || null) : u.centroId }); }));
       audit('centro_eliminado', c.nombre, { centroId: c.id });
       m.close(); toast('Centro eliminado', 'ok'); await cargarCentros(); route();
     } catch (er) { $('#c-err', m).textContent = errMsg(er); }
@@ -1422,7 +1442,7 @@ RUTAS['admin/turnos'] = async el => {
   await cargarUsuarios();
   const dias = Array.from({ length: 7 }, (_, i) => addDays(semSel, i)); const hoy = diaHoy();
   const [ts, aus] = await Promise.all([qIn('turnos', 'fecha', dias), q('ausencias', W('estado', '==', 'aprobada'))]);
-  const emps = S.usuarios.filter(u => u.activo && (!centroFiltro || u.centroId === centroFiltro || ts.some(t => t.uid === u.id && t.centroId === centroFiltro)));
+  const emps = S.usuarios.filter(u => u.activo && (!centroFiltro || centrosDe(u).includes(centroFiltro) || ts.some(t => t.uid === u.id && t.centroId === centroFiltro)));
   const key = (u, d) => u + '|' + d; const mapa = new Map();
   ts.forEach(t => { const k = key(t.uid, t.fecha); if (!mapa.has(k)) mapa.set(k, []); mapa.get(k).push(t); });
   el.innerHTML = `<div class="row between wrap"><h1>Turnos</h1><div class="row"><button class="btn sm" id="w-prev">‹</button><b>${diaFmt(dias[0]).slice(0, 5)} – ${diaFmt(dias[6])}</b><button class="btn sm" id="w-next">›</button></div></div>
@@ -1455,7 +1475,7 @@ function modalTurno(u, dia, existentes, semana) {
     <h3 style="margin-top:12px">Añadir turno</h3>
     ${horarios().some(h => h.dias[dowNum(dia)]) ? `<label>Desde un horario</label><select id="t-h"><option value="">— Horas a mano —</option>${horarios().filter(h => h.dias[dowNum(dia)]).map(h => `<option value="${h.id}">${esc(h.nombre)} (${h.dias[dowNum(dia)].map(r => r.i + '–' + r.f).join(' y ')})</option>`).join('')}</select>` : ''}
     <div class="grid2"><div><label>Inicio</label><input type="time" id="t-i" value="09:00"></div><div><label>Fin</label><input type="time" id="t-f" value="14:00"></div></div>
-    <label>Centro</label><select id="t-c">${S.centros.filter(c => c.activo !== false && !c.eliminado).map(c => `<option value="${c.id}" ${c.id === (centroFiltro || u.centroId) ? 'selected' : ''}>${esc(c.nombre)}</option>`).join('')}<option value="">—</option></select>
+    <label>Centro</label><select id="t-c">${S.centros.filter(c => c.activo !== false && !c.eliminado).sort((a, b) => centrosDe(u).includes(b.id) - centrosDe(u).includes(a.id)).map(c => `<option value="${c.id}" ${c.id === (centroFiltro || u.centroId) ? 'selected' : ''}>${esc(c.nombre)}</option>`).join('')}<option value="">—</option></select>
     <label>Notas</label><input id="t-n" placeholder="Ej.: puerta norte">
     <label style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" id="t-rep"> Repetir de lunes a viernes de esta semana</label>
     <p class="sub" style="font-size:12px;margin-top:6px">Si el fin es anterior al inicio, se entiende que termina al día siguiente.</p>
@@ -1552,8 +1572,8 @@ function modalAsignar(h, preUids = []) {
   const m = modal(`<h2>Asignar horario</h2>
     <label>Horario</label><select id="a-h">${horarios().map(x => `<option value="${x.id}" ${x.id === h?.id ? 'selected' : ''}>${esc(x.nombre)} · ${esc(resumenHorario(x))}</option>`).join('')}</select>
     <div class="row between" style="margin-top:12px"><label style="margin:0">Empleados</label><a href="#" id="a-all" style="font-size:12px;font-weight:700">Marcar todos</a></div>
-    <div class="ck-list" style="margin-top:6px">${emps.map(u => `<label class="chk"><input type="checkbox" value="${u.id}" ${preUids.includes(u.id) ? 'checked' : ''}> ${esc(nombreDe(u))} <span class="sub" style="margin-left:auto">${esc(centroById(u.centroId)?.nombre || '')}</span></label>`).join('')}</div>
-    <label>Centro de trabajo</label><select id="a-c"><option value="">El centro habitual de cada empleado</option>${S.centros.filter(c => c.activo !== false && !c.eliminado).map(c => `<option value="${c.id}">${esc(c.nombre)}</option>`).join('')}</select>
+    <div class="ck-list" style="margin-top:6px">${emps.map(u => `<label class="chk"><input type="checkbox" value="${u.id}" ${preUids.includes(u.id) ? 'checked' : ''}> ${esc(nombreDe(u))} <span class="sub" style="margin-left:auto;text-align:right">${esc(centrosTxt(u, ''))}</span></label>`).join('')}</div>
+    <label>Centro de trabajo</label><select id="a-c"><option value="">El centro principal de cada empleado</option>${S.centros.filter(c => c.activo !== false && !c.eliminado).map(c => `<option value="${c.id}">${esc(c.nombre)}</option>`).join('')}</select>
     <div class="grid2"><div><label>Desde</label><input type="date" id="a-d" value="${hoy}"></div><div><label>Hasta</label><input type="date" id="a-hs" value="${finMes}"></div></div>
     <label class="chk" style="margin-top:14px"><input type="checkbox" id="a-rep" checked> Sustituir los turnos que ya tengan en esas fechas</label>
     <p class="note" id="a-res"></p><div class="err-box" id="a-err"></div>
@@ -1729,7 +1749,7 @@ async function imprimir(lista) {
       doc.setDrawColor(...AZ); doc.setLineWidth(0.6); doc.line(M, 30, W - M, 30);
       txt('Empresa', M, 37, { b: 1, s: 8, c: [90, 98, 120] }); txt('Trabajador/a', W / 2, 37, { b: 1, s: 8, c: [90, 98, 120] });
       txt(`${e.nombre}\nCIF: ${e.cif}\n${e.direccion || ''}`, M, 42, { w: W / 2 - M - 4 });
-      txt(`${nombreDe(u)}\nDNI/NIE: ${u.dni || '—'}\nCentro: ${centroById(u.centroId)?.nombre || '—'} · ${CONTRATOS[u.contrato] || ''}`, W / 2, 42, { w: W / 2 - M });
+      txt(`${nombreDe(u)}\nDNI/NIE: ${u.dni || '—'}\n${centrosDe(u).length > 1 ? 'Centros' : 'Centro'}: ${centrosTxt(u, '—')} · ${CONTRATOS[u.contrato] || ''}`, W / 2, 42, { w: W / 2 - M });
       const filas = res.filas.map(r => [diaCorto(r.dia), r.turnos.map(t => `${t.inicio}–${t.fin}`).join('\n'), r.j ? r.j.tramos.map(([a, b]) => `${hora(a)}–${hora(b)}`).join('\n') : '', r.j?.pausaMs ? dur(r.j.pausaMs) : '', r.j ? dur(r.trab) : '', r.extra ? dur(r.extra) : '', [r.aus ? AUSENCIAS[r.aus.tipo] : '', r.j?.corregido ? 'Corregido' : '', ...(r.j?.incid || [])].filter(Boolean).join('; ')]);
       doc.autoTable({
         startY: 58, margin: { left: M, right: M }, theme: 'grid',
